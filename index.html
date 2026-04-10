@@ -24,7 +24,10 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   header {
@@ -150,14 +153,17 @@
   .highlight-toggle input { display: none; }
 
   .calendar-container {
-    overflow-x: auto;
+    overflow: auto;
     padding: 16px 24px;
+    flex: 1;
+    min-height: 0;
   }
 
   .calendar-grid {
     display: grid;
     gap: 0;
     min-width: 600px;
+    height: 100%;
   }
 
   .grid-header {
@@ -171,9 +177,6 @@
     font-size: 13px;
     font-weight: 600;
     border: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 2;
     color: var(--accent);
   }
 
@@ -193,7 +196,7 @@
 
   .hour-cell {
     border: 1px solid var(--border);
-    min-height: 24px;
+    min-height: 28px;
     position: relative;
   }
 
@@ -341,7 +344,6 @@
     border-color: var(--accent);
   }
 
-  .slot-size { height: 24px; }
 </style>
 </head>
 <body>
@@ -370,6 +372,7 @@
 
 <div id="day-pills-bar" style="padding: 8px 24px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
 
+<div id="calendar-header" style="padding: 0 24px; min-width: 600px;"></div>
 <div class="calendar-container">
   <div id="calendar"></div>
 </div>
@@ -528,9 +531,11 @@ function renderDayPills() {
 
 function renderCalendar() {
   const container = document.getElementById('calendar');
+  const headerContainer = document.getElementById('calendar-header');
   const visLocs = locations.filter(l => visibleLocations.has(l));
   if (visLocs.length === 0 || uniqueDays.length === 0) {
     container.innerHTML = '<p style="color: var(--text-muted); padding: 40px;">No data to display. Upload a CSV file to get started.</p>';
+    headerContainer.innerHTML = '';
     return;
   }
 
@@ -550,27 +555,34 @@ function renderCalendar() {
     if (endH > maxHour) maxHour = endH;
   });
 
-  const totalSlots = (maxHour - minHour) * 4; // 15-min slots
-  const cols = visLocs.length + 1; // +1 for time label
+  const totalSlots = (maxHour - minHour) * 2; // 30-min slots
 
-  container.innerHTML = '';
-  const grid = document.createElement('div');
-  grid.className = 'calendar-grid';
-  grid.style.gridTemplateColumns = `60px repeat(${visLocs.length}, 1fr)`;
-  grid.style.gridTemplateRows = `auto repeat(${totalSlots}, 24px)`;
+  // Render frozen header row
+  headerContainer.innerHTML = '';
+  const headerGrid = document.createElement('div');
+  headerGrid.style.display = 'grid';
+  headerGrid.style.gridTemplateColumns = `60px repeat(${visLocs.length}, 1fr)`;
+  headerGrid.style.minWidth = '600px';
 
-  // Header row
   const cornerHeader = document.createElement('div');
   cornerHeader.className = 'col-header';
   cornerHeader.textContent = 'Time';
-  grid.appendChild(cornerHeader);
+  headerGrid.appendChild(cornerHeader);
 
   visLocs.forEach(loc => {
     const h = document.createElement('div');
     h.className = 'col-header';
     h.textContent = loc;
-    grid.appendChild(h);
+    headerGrid.appendChild(h);
   });
+  headerContainer.appendChild(headerGrid);
+
+  // Render scrollable grid (no header row)
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'calendar-grid';
+  grid.style.gridTemplateColumns = `60px repeat(${visLocs.length}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${totalSlots}, 1fr)`;
 
   // Build occupied slot map for free-space highlighting
   const occupiedSlots = {}; // loc -> Set of slot indices
@@ -580,34 +592,25 @@ function renderCalendar() {
     if (!visibleLocations.has(ev.Room)) return;
     const startMin = timeToMinutes(ev.Start);
     const endMin = timeToMinutes(ev.End);
-    const startSlot = Math.floor((startMin - minHour * 60) / 15);
-    const endSlot = Math.ceil((endMin - minHour * 60) / 15);
+    const startSlot = Math.floor((startMin - minHour * 60) / 30);
+    const endSlot = Math.ceil((endMin - minHour * 60) / 30);
     for (let s = startSlot; s < endSlot; s++) {
       if (occupiedSlots[ev.Room]) occupiedSlots[ev.Room].add(s);
     }
   });
 
-  // Time rows (15-min slots)
+  // Time rows (30-min slots)
   for (let slot = 0; slot < totalSlots; slot++) {
-    const totalMin = minHour * 60 + slot * 15;
+    const totalMin = minHour * 60 + slot * 30;
     const h = Math.floor(totalMin / 60);
     const m = totalMin % 60;
 
-    // Time label - only show on the hour
-    const timeCell = document.createElement('div');
-    timeCell.className = 'time-label';
-    if (m === 0) {
-      timeCell.textContent = `${String(h).padStart(2,'0')}:00`;
-      timeCell.style.gridRow = `span 4`;
-    } else {
-      timeCell.style.display = 'none';
-      // Skip - handled by span 4
-      // Actually we need a different approach for spanning
-    }
-
     // Only add time label at hour boundaries
     if (m === 0) {
-      timeCell.style.gridRow = `${slot + 2} / ${slot + 6}`;
+      const timeCell = document.createElement('div');
+      timeCell.className = 'time-label';
+      timeCell.textContent = `${String(h).padStart(2,'0')}:00`;
+      timeCell.style.gridRow = `${slot + 1} / ${slot + 3}`;
       timeCell.style.gridColumn = '1';
       grid.appendChild(timeCell);
     }
@@ -616,7 +619,7 @@ function renderCalendar() {
     visLocs.forEach((loc, locIdx) => {
       const cell = document.createElement('div');
       cell.className = 'hour-cell';
-      cell.style.gridRow = `${slot + 2}`;
+      cell.style.gridRow = `${slot + 1}`;
       cell.style.gridColumn = `${locIdx + 2}`;
 
       if (highlightFree && !occupiedSlots[loc].has(slot)) {
@@ -635,14 +638,14 @@ function renderCalendar() {
 
     const startMin = timeToMinutes(ev.Start);
     const endMin = timeToMinutes(ev.End);
-    const startSlot = (startMin - minHour * 60) / 15;
-    const endSlot = (endMin - minHour * 60) / 15;
+    const startSlot = (startMin - minHour * 60) / 30;
+    const endSlot = (endMin - minHour * 60) / 30;
     const spanSlots = endSlot - startSlot;
 
     const block = document.createElement('div');
     block.className = 'event-block';
     block.setAttribute('data-color', getColor(ev.Class));
-    block.style.gridRow = `${Math.floor(startSlot) + 2} / ${Math.ceil(endSlot) + 2}`;
+    block.style.gridRow = `${Math.floor(startSlot) + 1} / ${Math.ceil(endSlot) + 1}`;
     block.style.gridColumn = `${locIdx + 2}`;
     block.style.position = 'relative';
     block.style.margin = '1px 2px';
@@ -653,14 +656,14 @@ function renderCalendar() {
     nameDiv.textContent = ev.Class;
     block.appendChild(nameDiv);
 
-    if (spanSlots >= 3) {
+    if (spanSlots >= 1.5) {
       const timeDiv = document.createElement('div');
       timeDiv.className = 'event-time';
       timeDiv.textContent = `${ev.Start} – ${ev.End}`;
       block.appendChild(timeDiv);
     }
 
-    if (spanSlots >= 5) {
+    if (spanSlots >= 2.5) {
       const instrDiv = document.createElement('div');
       instrDiv.className = 'event-instructor';
       instrDiv.textContent = ev.Instructor;
