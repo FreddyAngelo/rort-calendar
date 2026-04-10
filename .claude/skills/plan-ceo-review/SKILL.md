@@ -1,0 +1,1 @@
+/Users/frederiklynge/conductor/repos/rort-calendar/.claude/skills/gstack/plan-ceo-review/SKILL.md

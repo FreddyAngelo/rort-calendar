@@ -1,0 +1,1 @@
+/Users/frederiklynge/conductor/repos/rort-calendar/.claude/skills/gstack/open-gstack-browser/SKILL.md

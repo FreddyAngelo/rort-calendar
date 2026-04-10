@@ -1,0 +1,1 @@
+/Users/frederiklynge/conductor/repos/rort-calendar/.claude/skills/gstack/plan-devex-review/SKILL.md
