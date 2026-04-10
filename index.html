@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rört Calendar</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --text: #e0e0e0;
+    --text-muted: #888;
+    --accent: #c4a35a;
+    --free: #1b3a1b;
+    --free-border: #2d5a2d;
+    --event-bg: #2a1f3d;
+    --event-border: #4a3a6d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+  }
+
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .day-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .day-nav button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .day-nav button:hover { border-color: var(--accent); }
+
+  .day-nav .current-day {
+    font-size: 15px;
+    font-weight: 600;
+    min-width: 220px;
+    text-align: center;
+  }
+
+  .upload-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .upload-btn:hover { border-color: var(--accent); }
+
+  #csv-upload { display: none; }
+
+  .controls-bar {
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--surface);
+  }
+
+  .controls-bar label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-right: 4px;
+  }
+
+  .location-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    user-select: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: all 0.15s;
+  }
+
+  .location-toggle.active {
+    border-color: var(--accent);
+    background: rgba(196, 163, 90, 0.1);
+  }
+
+  .location-toggle input { display: none; }
+
+  .highlight-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    user-select: none;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    margin-left: auto;
+  }
+
+  .highlight-toggle.active {
+    border-color: var(--free-border);
+    background: var(--free);
+  }
+
+  .highlight-toggle input { display: none; }
+
+  .calendar-container {
+    overflow-x: auto;
+    padding: 16px 24px;
+  }
+
+  .calendar-grid {
+    display: grid;
+    gap: 0;
+    min-width: 600px;
+  }
+
+  .grid-header {
+    display: contents;
+  }
+
+  .col-header {
+    background: var(--surface);
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    color: var(--accent);
+  }
+
+  .time-label {
+    background: var(--surface);
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    min-width: 60px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  .hour-cell {
+    border: 1px solid var(--border);
+    min-height: 24px;
+    position: relative;
+  }
+
+  .hour-cell.free-highlight {
+    background: var(--free);
+  }
+
+  .event-block {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    background: var(--event-bg);
+    border-left: 3px solid var(--event-border);
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-size: 11px;
+    line-height: 1.3;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 1;
+    transition: filter 0.15s;
+  }
+
+  .event-block:hover {
+    filter: brightness(1.3);
+    z-index: 3;
+  }
+
+  .event-block .event-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .event-block .event-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .event-block .event-instructor {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Color palette for events by class type */
+  .event-block[data-color="0"] { background: #2a1f3d; border-left-color: #7c5cbf; }
+  .event-block[data-color="1"] { background: #1f2a3d; border-left-color: #5c8abf; }
+  .event-block[data-color="2"] { background: #3d2a1f; border-left-color: #bf7c5c; }
+  .event-block[data-color="3"] { background: #1f3d2a; border-left-color: #5cbf7c; }
+  .event-block[data-color="4"] { background: #3d1f2a; border-left-color: #bf5c7c; }
+  .event-block[data-color="5"] { background: #2a3d1f; border-left-color: #8abf5c; }
+  .event-block[data-color="6"] { background: #3d3d1f; border-left-color: #bfbf5c; }
+  .event-block[data-color="7"] { background: #1f3d3d; border-left-color: #5cbfbf; }
+  .event-block[data-color="8"] { background: #2d1f3d; border-left-color: #9a5cbf; }
+  .event-block[data-color="9"] { background: #3d1f3d; border-left-color: #bf5cbf; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .modal .detail-row {
+    display: flex;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .modal .detail-row:last-child { border-bottom: none; }
+
+  .modal .detail-label {
+    color: var(--text-muted);
+    min-width: 90px;
+    font-weight: 500;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .day-pills {
+    display: flex;
+    gap: 4px;
+  }
+
+  .day-pill {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-muted);
+  }
+
+  .day-pill.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .day-pill:hover:not(.active) {
+    border-color: var(--accent);
+  }
+
+  .slot-size { height: 24px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RÖRT CALENDAR</h1>
+  <div class="header-controls">
+    <div class="day-nav">
+      <button id="prev-day">&larr;</button>
+      <span class="current-day" id="current-day"></span>
+      <button id="next-day">&rarr;</button>
+    </div>
+    <label class="upload-btn" for="csv-upload">Upload CSV</label>
+    <input type="file" id="csv-upload" accept=".csv">
+  </div>
+</header>
+
+<div class="controls-bar" id="controls-bar">
+  <label>Locations:</label>
+  <div id="location-toggles"></div>
+  <label class="highlight-toggle" id="free-toggle">
+    <input type="checkbox" id="highlight-free">
+    Highlight free slots
+  </label>
+</div>
+
+<div id="day-pills-bar" style="padding: 8px 24px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
+
+<div class="calendar-container">
+  <div id="calendar"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// State
+let events = [];
+let locations = [];
+let visibleLocations = new Set();
+let highlightFree = false;
+let currentDayIndex = 0;
+let uniqueDays = [];
+let classColors = {};
+let colorIndex = 0;
+
+// Parse CSV
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',');
+  const parsed = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    // Handle commas inside fields (simple approach - split and rejoin if needed)
+    const vals = [];
+    let current = '';
+    let inQuotes = false;
+    for (const ch of line) {
+      if (ch === '"') { inQuotes = !inQuotes; continue; }
+      if (ch === ',' && !inQuotes) { vals.push(current.trim()); current = ''; continue; }
+      current += ch;
+    }
+    vals.push(current.trim());
+
+    const obj = {};
+    headers.forEach((h, idx) => obj[h.trim()] = vals[idx] || '');
+    parsed.push(obj);
+  }
+  return parsed;
+}
+
+// Time helpers
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function getColor(className) {
+  if (!(className in classColors)) {
+    classColors[className] = colorIndex % 10;
+    colorIndex++;
+  }
+  return classColors[className];
+}
+
+// Load initial CSV
+async function loadInitialData() {
+  try {
+    const resp = await fetch('data/rort_schedule-v1.csv');
+    const text = await resp.text();
+    addEvents(parseCSV(text));
+  } catch (e) {
+    console.log('No initial data file found, waiting for CSV upload.');
+  }
+}
+
+function addEvents(newEvents) {
+  events = events.concat(newEvents);
+  // Rebuild state
+  const locSet = new Set();
+  const daySet = new Set();
+  events.forEach(e => {
+    locSet.add(e.Room);
+    daySet.add(e.Date);
+  });
+  locations = Array.from(locSet).sort();
+  // Keep existing visibility if we already had locations, otherwise show all
+  if (visibleLocations.size === 0) {
+    visibleLocations = new Set(locations);
+  } else {
+    // Add any new locations as visible
+    locations.forEach(l => visibleLocations.add(l));
+  }
+  uniqueDays = Array.from(daySet).sort();
+  if (currentDayIndex >= uniqueDays.length) currentDayIndex = 0;
+
+  buildControls();
+  renderDayPills();
+  renderCalendar();
+}
+
+function buildControls() {
+  const container = document.getElementById('location-toggles');
+  container.innerHTML = '';
+  container.style.display = 'flex';
+  container.style.gap = '6px';
+  container.style.flexWrap = 'wrap';
+
+  locations.forEach(loc => {
+    const label = document.createElement('label');
+    label.className = 'location-toggle' + (visibleLocations.has(loc) ? ' active' : '');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = visibleLocations.has(loc);
+    cb.addEventListener('change', () => {
+      if (cb.checked) visibleLocations.add(loc);
+      else visibleLocations.delete(loc);
+      label.classList.toggle('active', cb.checked);
+      renderCalendar();
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(loc));
+    container.appendChild(label);
+  });
+}
+
+function renderDayPills() {
+  const bar = document.getElementById('day-pills-bar');
+  bar.innerHTML = '';
+  uniqueDays.forEach((day, idx) => {
+    const pill = document.createElement('span');
+    pill.className = 'day-pill' + (idx === currentDayIndex ? ' active' : '');
+    const d = new Date(day + 'T00:00:00');
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayNum = d.getDate();
+    pill.textContent = `${dayName} ${dayNum}`;
+    pill.addEventListener('click', () => {
+      currentDayIndex = idx;
+      renderDayPills();
+      renderCalendar();
+    });
+    bar.appendChild(pill);
+  });
+}
+
+function renderCalendar() {
+  const container = document.getElementById('calendar');
+  const visLocs = locations.filter(l => visibleLocations.has(l));
+  if (visLocs.length === 0 || uniqueDays.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted); padding: 40px;">No data to display. Upload a CSV file to get started.</p>';
+    return;
+  }
+
+  const currentDate = uniqueDays[currentDayIndex];
+  const d = new Date(currentDate + 'T00:00:00');
+  document.getElementById('current-day').textContent =
+    d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  const dayEvents = events.filter(e => e.Date === currentDate);
+
+  // Determine active hours (show 06:00-22:00 by default, expand if events fall outside)
+  let minHour = 6, maxHour = 22;
+  dayEvents.forEach(e => {
+    const startH = Math.floor(timeToMinutes(e.Start) / 60);
+    const endH = Math.ceil(timeToMinutes(e.End) / 60);
+    if (startH < minHour) minHour = startH;
+    if (endH > maxHour) maxHour = endH;
+  });
+
+  const totalSlots = (maxHour - minHour) * 4; // 15-min slots
+  const cols = visLocs.length + 1; // +1 for time label
+
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'calendar-grid';
+  grid.style.gridTemplateColumns = `60px repeat(${visLocs.length}, 1fr)`;
+  grid.style.gridTemplateRows = `auto repeat(${totalSlots}, 24px)`;
+
+  // Header row
+  const cornerHeader = document.createElement('div');
+  cornerHeader.className = 'col-header';
+  cornerHeader.textContent = 'Time';
+  grid.appendChild(cornerHeader);
+
+  visLocs.forEach(loc => {
+    const h = document.createElement('div');
+    h.className = 'col-header';
+    h.textContent = loc;
+    grid.appendChild(h);
+  });
+
+  // Build occupied slot map for free-space highlighting
+  const occupiedSlots = {}; // loc -> Set of slot indices
+  visLocs.forEach(l => occupiedSlots[l] = new Set());
+
+  dayEvents.forEach(ev => {
+    if (!visibleLocations.has(ev.Room)) return;
+    const startMin = timeToMinutes(ev.Start);
+    const endMin = timeToMinutes(ev.End);
+    const startSlot = Math.floor((startMin - minHour * 60) / 15);
+    const endSlot = Math.ceil((endMin - minHour * 60) / 15);
+    for (let s = startSlot; s < endSlot; s++) {
+      if (occupiedSlots[ev.Room]) occupiedSlots[ev.Room].add(s);
+    }
+  });
+
+  // Time rows (15-min slots)
+  for (let slot = 0; slot < totalSlots; slot++) {
+    const totalMin = minHour * 60 + slot * 15;
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+
+    // Time label - only show on the hour
+    const timeCell = document.createElement('div');
+    timeCell.className = 'time-label';
+    if (m === 0) {
+      timeCell.textContent = `${String(h).padStart(2,'0')}:00`;
+      timeCell.style.gridRow = `span 4`;
+    } else {
+      timeCell.style.display = 'none';
+      // Skip - handled by span 4
+      // Actually we need a different approach for spanning
+    }
+
+    // Only add time label at hour boundaries
+    if (m === 0) {
+      timeCell.style.gridRow = `${slot + 2} / ${slot + 6}`;
+      timeCell.style.gridColumn = '1';
+      grid.appendChild(timeCell);
+    }
+
+    // Location cells
+    visLocs.forEach((loc, locIdx) => {
+      const cell = document.createElement('div');
+      cell.className = 'hour-cell';
+      cell.style.gridRow = `${slot + 2}`;
+      cell.style.gridColumn = `${locIdx + 2}`;
+
+      if (highlightFree && !occupiedSlots[loc].has(slot)) {
+        cell.classList.add('free-highlight');
+      }
+
+      grid.appendChild(cell);
+    });
+  }
+
+  // Place events
+  dayEvents.forEach(ev => {
+    if (!visibleLocations.has(ev.Room)) return;
+    const locIdx = visLocs.indexOf(ev.Room);
+    if (locIdx === -1) return;
+
+    const startMin = timeToMinutes(ev.Start);
+    const endMin = timeToMinutes(ev.End);
+    const startSlot = (startMin - minHour * 60) / 15;
+    const endSlot = (endMin - minHour * 60) / 15;
+    const spanSlots = endSlot - startSlot;
+
+    const block = document.createElement('div');
+    block.className = 'event-block';
+    block.setAttribute('data-color', getColor(ev.Class));
+    block.style.gridRow = `${Math.floor(startSlot) + 2} / ${Math.ceil(endSlot) + 2}`;
+    block.style.gridColumn = `${locIdx + 2}`;
+    block.style.position = 'relative';
+    block.style.margin = '1px 2px';
+    block.style.minHeight = '0';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'event-name';
+    nameDiv.textContent = ev.Class;
+    block.appendChild(nameDiv);
+
+    if (spanSlots >= 3) {
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'event-time';
+      timeDiv.textContent = `${ev.Start} – ${ev.End}`;
+      block.appendChild(timeDiv);
+    }
+
+    if (spanSlots >= 5) {
+      const instrDiv = document.createElement('div');
+      instrDiv.className = 'event-instructor';
+      instrDiv.textContent = ev.Instructor;
+      block.appendChild(instrDiv);
+    }
+
+    block.addEventListener('click', () => showModal(ev));
+    grid.appendChild(block);
+  });
+
+  container.appendChild(grid);
+}
+
+function showModal(ev) {
+  document.getElementById('modal-title').textContent = ev.Class;
+  const body = document.getElementById('modal-body');
+  const fields = [
+    ['Date', `${ev.Day}, ${ev.Date}`],
+    ['Time', `${ev.Start} – ${ev.End}`],
+    ['Duration', `${ev.Duration_min} min`],
+    ['Location', ev.Room],
+    ['Instructor', ev.Instructor || '—'],
+  ];
+  body.innerHTML = fields.map(([label, val]) =>
+    `<div class="detail-row"><span class="detail-label">${label}</span><span>${val}</span></div>`
+  ).join('');
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+// Close modal
+document.getElementById('modal-close').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('show');
+});
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('show');
+});
+
+// Day navigation
+document.getElementById('prev-day').addEventListener('click', () => {
+  if (currentDayIndex > 0) {
+    currentDayIndex--;
+    renderDayPills();
+    renderCalendar();
+  }
+});
+document.getElementById('next-day').addEventListener('click', () => {
+  if (currentDayIndex < uniqueDays.length - 1) {
+    currentDayIndex++;
+    renderDayPills();
+    renderCalendar();
+  }
+});
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') { document.getElementById('prev-day').click(); }
+  if (e.key === 'ArrowRight') { document.getElementById('next-day').click(); }
+});
+
+// Free space toggle
+document.getElementById('free-toggle').addEventListener('click', () => {
+  highlightFree = !highlightFree;
+  document.getElementById('highlight-free').checked = highlightFree;
+  document.getElementById('free-toggle').classList.toggle('active', highlightFree);
+  renderCalendar();
+});
+
+// CSV upload
+document.getElementById('csv-upload').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const newEvents = parseCSV(ev.target.result);
+    addEvents(newEvents);
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // allow re-upload
+});
+
+// Init
+loadInitialData();
+</script>
+</body>
+</html>
