@@ -433,14 +433,22 @@ function getColor(className) {
   return classColors[className];
 }
 
-// Load initial CSV
+// Load initial CSVs
 async function loadInitialData() {
-  try {
-    const resp = await fetch('data/rort_schedule-v1.csv');
-    const text = await resp.text();
-    addEvents(parseCSV(text));
-  } catch (e) {
-    console.log('No initial data file found, waiting for CSV upload.');
+  const files = [
+    'data/rort_schedule-v1.csv',
+    'data/rort_schedule_week2.csv',
+  ];
+  for (const file of files) {
+    try {
+      const resp = await fetch(file);
+      if (resp.ok) {
+        const text = await resp.text();
+        addEvents(parseCSV(text));
+      }
+    } catch (e) {
+      // skip missing files
+    }
   }
 }
 
