@@ -438,15 +438,19 @@
   }
   .modal-close:hover { color: var(--text); }
 
-  /* ==================== Proposal blocks (day view overlays) ==================== */
-  .proposals-overlay {
+  /* ==================== Day view overlay (events + proposals) ==================== */
+  .day-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 2;
+    z-index: 1;
+  }
+  .day-overlay .event-block,
+  .day-overlay .proposal-block {
+    pointer-events: auto;
   }
   .proposal-block {
     --prop-color: #c4a35a;
@@ -1446,64 +1450,61 @@ function renderDayView() {
     });
   }
 
-  dayEvents.forEach(ev => {
-    if (!visibleLocations.has(ev.Room)) return;
-    const locIdx = visLocs.indexOf(ev.Room);
-    if (locIdx === -1) return;
-    const startMin = timeToMinutes(ev.Start);
-    const endMin = timeToMinutes(ev.End);
-    const startSlot = (startMin - minHour * 60) / 30;
-    const endSlot = (endMin - minHour * 60) / 30;
-    const spanSlots = endSlot - startSlot;
-
-    const block = document.createElement('div');
-    block.className = 'event-block';
-    block.setAttribute('data-color', getColor(ev.Class));
-    block.style.gridRow = `${Math.floor(startSlot) + 1} / ${Math.ceil(endSlot) + 1}`;
-    block.style.gridColumn = `${locIdx + 2}`;
-    block.style.position = 'relative';
-    block.style.margin = '1px 2px';
-    block.style.minHeight = '0';
-
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'event-name';
-    nameDiv.textContent = ev.Class;
-    block.appendChild(nameDiv);
-
-    if (spanSlots >= 1.5) {
-      const timeDiv = document.createElement('div');
-      timeDiv.className = 'event-time';
-      timeDiv.textContent = `${ev.Start} – ${ev.End}`;
-      block.appendChild(timeDiv);
-    }
-    if (spanSlots >= 2.5 && ev.Instructor) {
-      const instrDiv = document.createElement('div');
-      instrDiv.className = 'event-instructor';
-      instrDiv.textContent = ev.Instructor;
-      block.appendChild(instrDiv);
-    }
-
-    block.addEventListener('click', () => showModal(ev));
-    grid.appendChild(block);
-  });
-
   container.appendChild(grid);
 
-  // Compound-search proposals: absolutely-positioned overlay with pixel-accurate
-  // placement (independent of the 30-min grid snapping) + color-coded per match.
-  if (compoundSearchActive && compoundSearchResults.has(currentDate)) {
-    const matches = compoundSearchResults.get(currentDate);
-    const overlay = document.createElement('div');
-    overlay.className = 'proposals-overlay';
-    grid.appendChild(overlay);
+  // Pixel-accurate overlay for both regular events and proposals. This avoids the
+  // 30-min grid snapping that would otherwise round, e.g., 18:15 up to 18:30 and
+  // make the buffer between an event and a following proposal disappear visually.
+  const overlay = document.createElement('div');
+  overlay.className = 'day-overlay';
+  grid.appendChild(overlay);
 
-    requestAnimationFrame(() => {
-      const gridW = grid.offsetWidth;
-      const gridH = grid.offsetHeight;
-      const timeColW = 60;
-      const colW = (gridW - timeColW) / visLocs.length;
-      const totalMinutes = (maxHour - minHour) * 60;
-      const pxPerMin = gridH / totalMinutes;
+  requestAnimationFrame(() => {
+    const gridW = grid.offsetWidth;
+    const gridH = grid.offsetHeight;
+    const timeColW = 60;
+    const colW = (gridW - timeColW) / visLocs.length;
+    const totalMinutes = (maxHour - minHour) * 60;
+    const pxPerMin = gridH / totalMinutes;
+
+    // Regular events
+    dayEvents.forEach(ev => {
+      if (!visibleLocations.has(ev.Room)) return;
+      const locIdx = visLocs.indexOf(ev.Room);
+      if (locIdx === -1) return;
+      const startMin = timeToMinutes(ev.Start);
+      const endMin = timeToMinutes(ev.End);
+      const top = (startMin - minHour * 60) * pxPerMin;
+      const height = Math.max(18, (endMin - startMin) * pxPerMin);
+      const left = timeColW + locIdx * colW + 2;
+      const width = colW - 4;
+      const block = document.createElement('div');
+      block.className = 'event-block';
+      block.setAttribute('data-color', getColor(ev.Class));
+      block.style.cssText = `position:absolute;top:${top}px;left:${left}px;width:${width}px;height:${height}px;margin:0;`;
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'event-name';
+      nameDiv.textContent = ev.Class;
+      block.appendChild(nameDiv);
+      if (height >= 28) {
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'event-time';
+        timeDiv.textContent = `${ev.Start} – ${ev.End}`;
+        block.appendChild(timeDiv);
+      }
+      if (height >= 50 && ev.Instructor) {
+        const instrDiv = document.createElement('div');
+        instrDiv.className = 'event-instructor';
+        instrDiv.textContent = ev.Instructor;
+        block.appendChild(instrDiv);
+      }
+      block.addEventListener('click', () => showModal(ev));
+      overlay.appendChild(block);
+    });
+
+    // Compound-search proposals (color-coded + dotted connector lines)
+    if (compoundSearchActive && compoundSearchResults.has(currentDate)) {
+      const matches = compoundSearchResults.get(currentDate);
 
       // Pass 1: collect flat list of proposal items
       const items = [];
@@ -1609,8 +1610,8 @@ function renderDayView() {
         }
       });
       overlay.appendChild(svg);
-    });
-  }
+    }
+  });
 }
 
 function escapeHtml(s) {
