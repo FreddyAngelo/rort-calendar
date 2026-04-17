@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rort-calendar",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8765"],
+      "port": 8765
+    },
+    {
+      "name": "design-mockups",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8766", "--directory", "/Users/frederiklynge/.gstack/projects/FreddyAngelo-rort-calendar/designs/calendar-date-nav-20260417/mockups"],
+      "port": 8766
+    }
+  ]
+}
