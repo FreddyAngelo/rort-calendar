@@ -447,7 +447,7 @@ function getColor(className) {
 
 // Load initial CSVs
 async function loadInitialData() {
-  const files = Array.from({ length: 10 }, (_, i) => `data/rort_schedule_week${i + 1}.csv`);
+  const files = Array.from({ length: 11 }, (_, i) => `data/rort_schedule_week${i + 1}.csv`);
   for (const file of files) {
     try {
       const resp = await fetch(file);

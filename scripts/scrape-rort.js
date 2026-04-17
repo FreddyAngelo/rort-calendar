@@ -11,7 +11,9 @@ const HEADERS = {
   Origin: 'https://rort.yogo.dk',
   Referer: 'https://rort.yogo.dk/',
 };
-const WEEKS_AHEAD = 10;
+// 11 weeks guarantees ~10 full weeks of future content regardless of which day
+// the cron runs (current week is partly in the past, so we fetch one extra).
+const WEEKS_AHEAD = 11;
 const OUT_DIR = path.join(__dirname, '..', 'data');
 
 function mondayOfCurrentWeekCopenhagen() {
