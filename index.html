@@ -454,34 +454,38 @@
     background: color-mix(in srgb, var(--prop-color) 12%, transparent);
     border: 1.5px dashed var(--prop-color);
     border-radius: 3px;
-    padding: 14px 5px 3px 5px;
+    padding: 4px 5px 3px 25px;
     font-size: 10px;
     color: var(--prop-color);
     opacity: 0.95;
     overflow: hidden;
     line-height: 1.2;
     pointer-events: auto;
+    min-width: 0;
   }
   .proposal-block .match-num {
     position: absolute;
-    top: 2px;
-    left: 2px;
-    right: 2px;
+    top: 3px;
+    left: 3px;
     background: var(--prop-color);
     color: #0f0f0f;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 1px 5px;
-    border-radius: 3px;
-    line-height: 1.3;
-    text-align: center;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
   .proposal-block .proposal-time {
     font-size: 10px;
     color: var(--prop-color);
-    margin-top: 1px;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .proposal-svg {
     position: absolute;
@@ -1492,28 +1496,75 @@ function renderDayView() {
       const totalMinutes = (maxHour - minHour) * 60;
       const pxPerMin = gridH / totalMinutes;
 
-      const groups = [];
+      // Pass 1: collect flat list of proposal items
+      const items = [];
       matches.forEach((placements, matchIdx) => {
         const color = PROPOSAL_COLORS[matchIdx % PROPOSAL_COLORS.length];
-        const els = [];
         placements.forEach(p => {
           const locIdx = visLocs.indexOf(p.room);
           if (locIdx === -1) return;
-          const top = (p.start - minHour * 60) * pxPerMin;
-          const height = (p.end - p.start) * pxPerMin;
-          const left = timeColW + locIdx * colW + 2;
-          const width = colW - 4;
-          const b = document.createElement('div');
-          b.className = 'proposal-block';
-          b.style.cssText = `top:${top}px;height:${height}px;left:${left}px;width:${width}px;--prop-color:${color};`;
-          const showTime = (p.end - p.start) >= 30;
-          const timeHTML = showTime ? `<div class="proposal-time">${minutesToTime(p.start)}–${minutesToTime(p.end)}</div>` : '';
-          b.innerHTML = `<span class="match-num">PROPOSAL ${matchIdx + 1}</span>${timeHTML}`;
-          overlay.appendChild(b);
-          els.push(b);
+          items.push({ matchIdx, color, locIdx, room: p.room, start: p.start, end: p.end });
         });
-        groups.push({ els, color });
       });
+
+      // Pass 2: within each room, cluster transitively-overlapping items and
+      // assign each a sub-column + sub-column count so they sit side-by-side
+      // instead of stacking on top of each other.
+      const byRoom = new Map();
+      items.forEach(it => {
+        const arr = byRoom.get(it.room) || [];
+        arr.push(it);
+        byRoom.set(it.room, arr);
+      });
+      byRoom.forEach(arr => {
+        arr.sort((a, b) => a.start - b.start);
+        let cluster = [];
+        let clusterEnd = -1;
+        const flush = () => {
+          if (!cluster.length) return;
+          const subColEnds = [];
+          cluster.forEach(item => {
+            let placed = -1;
+            for (let i = 0; i < subColEnds.length; i++) {
+              if (subColEnds[i] <= item.start) { subColEnds[i] = item.end; placed = i; break; }
+            }
+            if (placed === -1) { subColEnds.push(item.end); placed = subColEnds.length - 1; }
+            item.subCol = placed;
+          });
+          const subColCount = subColEnds.length;
+          cluster.forEach(item => { item.subColCount = subColCount; });
+          cluster = [];
+          clusterEnd = -1;
+        };
+        arr.forEach(item => {
+          if (cluster.length && item.start >= clusterEnd) flush();
+          cluster.push(item);
+          clusterEnd = Math.max(clusterEnd, item.end);
+        });
+        flush();
+      });
+
+      // Pass 3: render DOM blocks per match, tracking match groups for the connector SVG
+      const groupMap = new Map();
+      items.forEach(it => {
+        const subW = colW / it.subColCount;
+        const top = (it.start - minHour * 60) * pxPerMin;
+        const height = (it.end - it.start) * pxPerMin;
+        const left = timeColW + it.locIdx * colW + it.subCol * subW + 2;
+        const width = subW - 4;
+        const b = document.createElement('div');
+        b.className = 'proposal-block';
+        b.style.cssText = `top:${top}px;height:${height}px;left:${left}px;width:${width}px;--prop-color:${it.color};`;
+        const showTime = (it.end - it.start) >= 30;
+        const timeHTML = showTime ? `<div class="proposal-time">${minutesToTime(it.start)}–${minutesToTime(it.end)}</div>` : '';
+        b.innerHTML = `<span class="match-num">${it.matchIdx + 1}</span>${timeHTML}`;
+        b.title = `Proposal ${it.matchIdx + 1} · ${it.room} · ${minutesToTime(it.start)}–${minutesToTime(it.end)}`;
+        overlay.appendChild(b);
+        const g = groupMap.get(it.matchIdx) || { els: [], color: it.color };
+        g.els.push(b);
+        groupMap.set(it.matchIdx, g);
+      });
+      const groups = Array.from(groupMap.values());
 
       // Dotted connector lines between steps of the same match
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
