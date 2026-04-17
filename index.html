@@ -261,7 +261,14 @@
   }
 
   /* Day view grid */
-  #day-header { padding: 0 20px; min-width: 600px; }
+  #day-header {
+    padding: 0 20px;
+    min-width: 600px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+  }
   .day-calendar-wrap { padding: 16px 20px; }
   .day-grid { display: grid; gap: 0; min-width: 600px; }
   .col-header {
@@ -315,7 +322,14 @@
   .event-block .event-instructor { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Week view grid */
-  #week-header { padding: 0; min-width: 900px; }
+  #week-header {
+    padding: 0;
+    min-width: 900px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+  }
   .week-grid-wrap { padding: 0 0 16px; }
   .week-grid {
     display: grid;
