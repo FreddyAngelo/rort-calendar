@@ -487,6 +487,15 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  /* Narrow variant: when proposals are side-by-side in the same room,
+     stack the start/end timestamps on separate lines below the badge
+     (the single-line "18:15–20:45" format won't fit in the narrow sub-column). */
+  .proposal-block.narrow {
+    padding: 22px 4px 3px 4px;
+  }
+  .proposal-block.narrow .proposal-time { line-height: 1.15; }
+  .proposal-block.narrow .proposal-time > span { display: block; }
+  .proposal-block.narrow .proposal-time .t-sep { display: none; }
   .proposal-svg {
     position: absolute;
     top: 0;
@@ -1553,10 +1562,12 @@ function renderDayView() {
         const left = timeColW + it.locIdx * colW + it.subCol * subW + 2;
         const width = subW - 4;
         const b = document.createElement('div');
-        b.className = 'proposal-block';
+        b.className = 'proposal-block' + (it.subColCount > 1 ? ' narrow' : '');
         b.style.cssText = `top:${top}px;height:${height}px;left:${left}px;width:${width}px;--prop-color:${it.color};`;
-        const showTime = (it.end - it.start) >= 30;
-        const timeHTML = showTime ? `<div class="proposal-time">${minutesToTime(it.start)}–${minutesToTime(it.end)}</div>` : '';
+        const showTime = (it.end - it.start) >= (it.subColCount > 1 ? 45 : 30);
+        const timeHTML = showTime
+          ? `<div class="proposal-time"><span>${minutesToTime(it.start)}</span><span class="t-sep">–</span><span>${minutesToTime(it.end)}</span></div>`
+          : '';
         b.innerHTML = `<span class="match-num">${it.matchIdx + 1}</span>${timeHTML}`;
         b.title = `Proposal ${it.matchIdx + 1} · ${it.room} · ${minutesToTime(it.start)}–${minutesToTime(it.end)}`;
         overlay.appendChild(b);
