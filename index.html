@@ -160,7 +160,8 @@
     margin-bottom: 16px;
   }
   .loc-toggle {
-    display: flex;
+    display: grid;
+    grid-template-columns: 10px 1fr auto;
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
@@ -176,6 +177,94 @@
     background: rgba(196, 163, 90, 0.1);
   }
   .loc-toggle input { display: none; }
+  .loc-toggle .loc-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .loc-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .loc-gear {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 13px;
+    line-height: 1;
+    border-radius: 4px;
+    opacity: 0.5;
+  }
+  .loc-gear:hover { opacity: 1; color: var(--accent); background: var(--bg); }
+
+  /* Sidebar dot swatches: bright accent color for quick scanning */
+  .loc-swatch[data-color="0"] { background: #7c5cbf; }
+  .loc-swatch[data-color="1"] { background: #5c8abf; }
+  .loc-swatch[data-color="2"] { background: #bf7c5c; }
+  .loc-swatch[data-color="3"] { background: #5cbf7c; }
+  .loc-swatch[data-color="4"] { background: #bf5c7c; }
+  .loc-swatch[data-color="5"] { background: #8abf5c; }
+  .loc-swatch[data-color="6"] { background: #bfbf5c; }
+  .loc-swatch[data-color="7"] { background: #5cbfbf; }
+  .loc-swatch[data-color="8"] { background: #9a5cbf; }
+  .loc-swatch[data-color="9"] { background: #bf5cbf; }
+
+  /* Location settings popover */
+  .popover {
+    display: none;
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    width: 280px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    z-index: 100;
+  }
+  .popover.show { display: block; }
+  .popover-title {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .popover-palette {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .color-swatch {
+    flex: 1;
+    height: 24px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    outline: 2px solid transparent;
+    outline-offset: 1px;
+    transition: transform 0.1s;
+  }
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.selected { outline-color: var(--accent); }
+  .popover-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .popover-input::placeholder { color: var(--text-muted); }
+  .popover-input:focus { outline: none; border-color: var(--accent); }
 
   .free-toggle {
     display: flex;
@@ -399,17 +488,17 @@
   }
   .week-event:hover { filter: brightness(1.3); z-index: 5; }
 
-  /* Event color palette */
-  .event-block[data-color="0"], .week-event[data-color="0"] { background: #2a1f3d; border-left: 3px solid #7c5cbf; }
-  .event-block[data-color="1"], .week-event[data-color="1"] { background: #1f2a3d; border-left: 3px solid #5c8abf; }
-  .event-block[data-color="2"], .week-event[data-color="2"] { background: #3d2a1f; border-left: 3px solid #bf7c5c; }
-  .event-block[data-color="3"], .week-event[data-color="3"] { background: #1f3d2a; border-left: 3px solid #5cbf7c; }
-  .event-block[data-color="4"], .week-event[data-color="4"] { background: #3d1f2a; border-left: 3px solid #bf5c7c; }
-  .event-block[data-color="5"], .week-event[data-color="5"] { background: #2a3d1f; border-left: 3px solid #8abf5c; }
-  .event-block[data-color="6"], .week-event[data-color="6"] { background: #3d3d1f; border-left: 3px solid #bfbf5c; }
-  .event-block[data-color="7"], .week-event[data-color="7"] { background: #1f3d3d; border-left: 3px solid #5cbfbf; }
-  .event-block[data-color="8"], .week-event[data-color="8"] { background: #2d1f3d; border-left: 3px solid #9a5cbf; }
-  .event-block[data-color="9"], .week-event[data-color="9"] { background: #3d1f3d; border-left: 3px solid #bf5cbf; }
+  /* Event color palette — shared between calendar tiles and settings-modal swatches */
+  .event-block[data-color="0"], .week-event[data-color="0"], .color-swatch[data-color="0"] { background: #2a1f3d; border-left: 3px solid #7c5cbf; }
+  .event-block[data-color="1"], .week-event[data-color="1"], .color-swatch[data-color="1"] { background: #1f2a3d; border-left: 3px solid #5c8abf; }
+  .event-block[data-color="2"], .week-event[data-color="2"], .color-swatch[data-color="2"] { background: #3d2a1f; border-left: 3px solid #bf7c5c; }
+  .event-block[data-color="3"], .week-event[data-color="3"], .color-swatch[data-color="3"] { background: #1f3d2a; border-left: 3px solid #5cbf7c; }
+  .event-block[data-color="4"], .week-event[data-color="4"], .color-swatch[data-color="4"] { background: #3d1f2a; border-left: 3px solid #bf5c7c; }
+  .event-block[data-color="5"], .week-event[data-color="5"], .color-swatch[data-color="5"] { background: #2a3d1f; border-left: 3px solid #8abf5c; }
+  .event-block[data-color="6"], .week-event[data-color="6"], .color-swatch[data-color="6"] { background: #3d3d1f; border-left: 3px solid #bfbf5c; }
+  .event-block[data-color="7"], .week-event[data-color="7"], .color-swatch[data-color="7"] { background: #1f3d3d; border-left: 3px solid #5cbfbf; }
+  .event-block[data-color="8"], .week-event[data-color="8"], .color-swatch[data-color="8"] { background: #2d1f3d; border-left: 3px solid #9a5cbf; }
+  .event-block[data-color="9"], .week-event[data-color="9"], .color-swatch[data-color="9"] { background: #3d1f3d; border-left: 3px solid #bf5cbf; }
 
   /* Modal */
   .modal-overlay {
@@ -538,14 +627,33 @@
   </div>
 </div>
 
+<div class="popover" id="loc-settings-popover">
+  <div class="popover-title" id="loc-settings-title"></div>
+  <div class="popover-palette" id="loc-settings-palette"></div>
+  <input type="text" class="popover-input" id="loc-settings-short" placeholder="Short name (e.g. S1)" maxlength="6" />
+</div>
+
 <script>
 // ---------- State ----------
 let events = [];
 let locations = [];
 let visibleLocations = new Set();
 let highlightFree = false;
-let classColors = {};
+let locationColors = {};
 let colorIndex = 0;
+
+// Per-location user settings: { [Room]: { color: 0-9, shortName: '' } }
+const LOC_SETTINGS_KEY = 'rort-calendar-location-settings-v1';
+let locationSettings = (() => {
+  try { return JSON.parse(localStorage.getItem(LOC_SETTINGS_KEY)) || {}; }
+  catch { return {}; }
+})();
+function saveLocationSettings() {
+  try { localStorage.setItem(LOC_SETTINGS_KEY, JSON.stringify(locationSettings)); } catch {}
+}
+const TIGHT_WIDTH_PX = 80;
+// Rainbow visual order for the swatch row. Color indices (0-9) are preserved for saved settings.
+const RAINBOW_ORDER = [4, 2, 6, 5, 3, 7, 1, 0, 8, 9];
 
 // Current date cursor (ISO yyyy-mm-dd). Defaults to today.
 let currentDate = todayIso();
@@ -613,12 +721,18 @@ function timeToMinutes(t) {
   return h * 60 + m;
 }
 
-function getColor(className) {
-  if (!(className in classColors)) {
-    classColors[className] = colorIndex % 10;
+function getColor(location) {
+  const override = locationSettings[location]?.color;
+  if (Number.isInteger(override)) return override;
+  if (!(location in locationColors)) {
+    locationColors[location] = colorIndex % 10;
     colorIndex++;
   }
-  return classColors[className];
+  return locationColors[location];
+}
+
+function getShortName(location) {
+  return locationSettings[location]?.shortName || '';
 }
 
 // ---------- Data loading ----------
@@ -702,21 +816,113 @@ function buildLocationControls() {
   const container = document.getElementById('location-toggles');
   container.innerHTML = '';
   locations.forEach(loc => {
-    const label = document.createElement('label');
-    label.className = 'loc-toggle' + (visibleLocations.has(loc) ? ' active' : '');
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = visibleLocations.has(loc);
-    cb.addEventListener('change', () => {
-      if (cb.checked) visibleLocations.add(loc);
+    const row = document.createElement('div');
+    row.className = 'loc-toggle' + (visibleLocations.has(loc) ? ' active' : '');
+
+    const swatch = document.createElement('span');
+    swatch.className = 'loc-swatch';
+    swatch.setAttribute('data-color', getColor(loc));
+
+    const name = document.createElement('span');
+    name.className = 'loc-name';
+    name.textContent = loc;
+
+    const gear = document.createElement('button');
+    gear.className = 'loc-gear';
+    gear.innerHTML = '&#9881;';
+    gear.title = 'Location settings';
+
+    row.appendChild(swatch);
+    row.appendChild(name);
+    row.appendChild(gear);
+
+    row.addEventListener('click', (e) => {
+      if (e.target === gear || gear.contains(e.target)) return;
+      const nowOn = !visibleLocations.has(loc);
+      if (nowOn) visibleLocations.add(loc);
       else visibleLocations.delete(loc);
-      label.classList.toggle('active', cb.checked);
+      row.classList.toggle('active', nowOn);
       render();
     });
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(loc));
-    container.appendChild(label);
+    gear.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLocationSettings(loc, row);
+    });
+
+    container.appendChild(row);
   });
+}
+
+let closePopoverListener = null;
+
+function openLocationSettings(loc, anchor) {
+  const pop = document.getElementById('loc-settings-popover');
+  document.getElementById('loc-settings-title').textContent = loc;
+
+  const palette = document.getElementById('loc-settings-palette');
+  palette.innerHTML = '';
+  const currentColor = getColor(loc);
+  RAINBOW_ORDER.forEach(i => {
+    const btn = document.createElement('button');
+    btn.className = 'color-swatch' + (i === currentColor ? ' selected' : '');
+    btn.setAttribute('data-color', i);
+    btn.addEventListener('click', () => {
+      locationSettings[loc] = { ...locationSettings[loc], color: i };
+      saveLocationSettings();
+      palette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      btn.classList.add('selected');
+      buildLocationControls();
+      render();
+    });
+    palette.appendChild(btn);
+  });
+
+  const shortInput = document.getElementById('loc-settings-short');
+  shortInput.value = getShortName(loc);
+  shortInput.oninput = () => {
+    const v = shortInput.value.trim();
+    locationSettings[loc] = { ...locationSettings[loc], shortName: v };
+    saveLocationSettings();
+    render();
+  };
+
+  pop.classList.add('show');
+  positionPopover(pop, anchor);
+
+  if (closePopoverListener) document.removeEventListener('mousedown', closePopoverListener);
+  closePopoverListener = (e) => {
+    if (!pop.contains(e.target) && e.target !== anchor && !anchor.contains(e.target)) {
+      closeLocationSettings();
+    }
+  };
+  setTimeout(() => document.addEventListener('mousedown', closePopoverListener), 0);
+}
+
+function positionPopover(pop, anchor) {
+  const rect = anchor.getBoundingClientRect();
+  const margin = 8;
+  const popWidth = pop.offsetWidth;
+  const popHeight = pop.offsetHeight;
+  let left = rect.right + margin;
+  let top = rect.top;
+  if (left + popWidth > window.innerWidth - margin) {
+    left = rect.left - popWidth - margin;
+  }
+  if (left < margin) left = margin;
+  if (top + popHeight > window.innerHeight - margin) {
+    top = window.innerHeight - popHeight - margin;
+  }
+  if (top < margin) top = margin;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+
+function closeLocationSettings() {
+  document.getElementById('loc-settings-popover').classList.remove('show');
+  if (closePopoverListener) {
+    document.removeEventListener('mousedown', closePopoverListener);
+    closePopoverListener = null;
+  }
 }
 
 // ---------- Mini calendar ----------
@@ -808,6 +1014,17 @@ function render() {
   document.getElementById('day-container').style.display = viewMode === 'day' ? '' : 'none';
   if (viewMode === 'week') renderWeekView();
   else renderDayView();
+  requestAnimationFrame(applyTightNames);
+}
+
+function applyTightNames() {
+  document.querySelectorAll('.event-room[data-full]').forEach(el => {
+    const full = el.dataset.full;
+    const short = el.dataset.short;
+    if (!short) { el.textContent = full; return; }
+    const tileWidth = el.closest('.week-event, .event-block')?.offsetWidth || 0;
+    el.textContent = tileWidth > 0 && tileWidth < TIGHT_WIDTH_PX ? short : full;
+  });
 }
 
 // ---------- Week view ----------
@@ -916,7 +1133,7 @@ function renderWeekView() {
 
       const block = document.createElement('div');
       block.className = 'week-event';
-      block.setAttribute('data-color', getColor(ev.Class));
+      block.setAttribute('data-color', getColor(ev.Room));
       block.style.top = top + 'px';
       block.style.height = Math.max(18, height) + 'px';
       block.style.left = `calc(${leftPct}% + 2px)`;
@@ -924,9 +1141,9 @@ function renderWeekView() {
       block.style.right = 'auto';
 
       const parts = [];
-      parts.push(`<div class="event-room">${escapeHtml(ev.Room)}</div>`);
-      parts.push(`<div class="event-name">${escapeHtml(ev.Class)}</div>`);
-      if (height >= 28) parts.push(`<div class="event-time">${escapeHtml(ev.Start)}</div>`);
+      const shortName = getShortName(ev.Room);
+      parts.push(`<div class="event-room" data-full="${escapeHtml(ev.Room)}" data-short="${escapeHtml(shortName)}">${escapeHtml(ev.Room)}</div>`);
+      parts.push(`<div class="event-time">${escapeHtml(ev.Start)}</div>`);
       block.innerHTML = parts.join('');
       block.addEventListener('click', () => showModal(ev));
       col.appendChild(block);
@@ -1077,30 +1294,24 @@ function renderDayView() {
 
     const block = document.createElement('div');
     block.className = 'event-block';
-    block.setAttribute('data-color', getColor(ev.Class));
+    block.setAttribute('data-color', getColor(ev.Room));
     block.style.gridRow = `${Math.floor(startSlot) + 1} / ${Math.ceil(endSlot) + 1}`;
     block.style.gridColumn = `${locIdx + 2}`;
     block.style.position = 'relative';
     block.style.margin = '1px 2px';
     block.style.minHeight = '0';
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'event-name';
-    nameDiv.textContent = ev.Class;
-    block.appendChild(nameDiv);
+    const roomDiv = document.createElement('div');
+    roomDiv.className = 'event-room';
+    roomDiv.textContent = ev.Room;
+    roomDiv.dataset.full = ev.Room;
+    roomDiv.dataset.short = getShortName(ev.Room);
+    block.appendChild(roomDiv);
 
-    if (spanSlots >= 1.5) {
-      const timeDiv = document.createElement('div');
-      timeDiv.className = 'event-time';
-      timeDiv.textContent = `${ev.Start} – ${ev.End}`;
-      block.appendChild(timeDiv);
-    }
-    if (spanSlots >= 2.5 && ev.Instructor) {
-      const instrDiv = document.createElement('div');
-      instrDiv.className = 'event-instructor';
-      instrDiv.textContent = ev.Instructor;
-      block.appendChild(instrDiv);
-    }
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'event-time';
+    timeDiv.textContent = ev.Start;
+    block.appendChild(timeDiv);
 
     block.addEventListener('click', () => showModal(ev));
     grid.appendChild(block);
@@ -1140,9 +1351,21 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   }
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('show');
-  if (e.key === 'ArrowLeft') document.getElementById('prev-range').click();
-  if (e.key === 'ArrowRight') document.getElementById('next-range').click();
+  if (e.key === 'Escape') {
+    document.getElementById('modal-overlay').classList.remove('show');
+    closeLocationSettings();
+  }
+  const modalOpen = document.querySelector('.modal-overlay.show');
+  const popOpen = document.getElementById('loc-settings-popover').classList.contains('show');
+  if (!modalOpen && !popOpen && e.target.tagName !== 'INPUT') {
+    if (e.key === 'ArrowLeft') document.getElementById('prev-range').click();
+    if (e.key === 'ArrowRight') document.getElementById('next-range').click();
+  }
+});
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(applyTightNames, 100);
 });
 
 // Sidebar month nav
