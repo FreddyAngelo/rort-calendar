@@ -442,15 +442,20 @@
   }
   .week-day-col {
     border-right: 1px solid var(--border);
-    border-top: 1px solid var(--border);
     position: relative;
   }
   .week-day-col.today { background: rgba(196, 163, 90, 0.03); }
+  .week-day-col .hour-tick {
+    position: absolute;
+    left: 0; right: 0;
+    border-top: 1px solid var(--border);
+    pointer-events: none;
+  }
   .week-day-col .half-tick {
     position: absolute;
     left: 0; right: 0;
     border-top: 1px dashed var(--border);
-    opacity: 0.4;
+    opacity: 0.35;
     pointer-events: none;
   }
   .week-event {
@@ -1638,12 +1643,17 @@ function renderWeekView() {
     col.style.gridColumn = `${i + 2}`;
     col.dataset.date = iso;
 
-    // Half-hour tick marks
+    // Hour + half-hour tick marks
     for (let hr = minHour; hr < maxHour; hr++) {
-      const tick = document.createElement('div');
-      tick.className = 'half-tick';
-      tick.style.top = ((hr - minHour) * pxPerHour + pxPerRow) + 'px';
-      col.appendChild(tick);
+      const hourTick = document.createElement('div');
+      hourTick.className = 'hour-tick';
+      hourTick.style.top = ((hr - minHour) * pxPerHour) + 'px';
+      col.appendChild(hourTick);
+
+      const halfTick = document.createElement('div');
+      halfTick.className = 'half-tick';
+      halfTick.style.top = ((hr - minHour) * pxPerHour + pxPerRow) + 'px';
+      col.appendChild(halfTick);
     }
 
     // Events for this day, resolving overlap layout
