@@ -88,6 +88,8 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
   }
 
   .upload-btn:hover { border-color: var(--accent); }
@@ -356,6 +358,13 @@
       <span class="current-day" id="current-day"></span>
       <button id="next-day">&rarr;</button>
     </div>
+    <a
+      class="upload-btn"
+      href="https://github.com/FreddyAngelo/rort-calendar/actions/workflows/scrape-schedule.yml"
+      target="_blank"
+      rel="noopener"
+      title="Opens GitHub Actions. Click &quot;Run workflow&quot;, wait ~30s, then reload this page."
+    >Refresh schedule</a>
     <label class="upload-btn" for="csv-upload">Upload CSV</label>
     <input type="file" id="csv-upload" accept=".csv">
   </div>
@@ -438,15 +447,7 @@ function getColor(className) {
 
 // Load initial CSVs
 async function loadInitialData() {
-  const files = [
-    'data/rort_schedule-v1.csv',
-    'data/rort_schedule_week2.csv',
-    'data/rort_schedule_week3.csv',
-    'data/rort_schedule_week4.csv',
-    'data/rort_schedule_week5.csv',
-    'data/rort_schedule_week6.csv',
-    'data/rort_schedule_week7.csv',
-  ];
+  const files = Array.from({ length: 10 }, (_, i) => `data/rort_schedule_week${i + 1}.csv`);
   for (const file of files) {
     try {
       const resp = await fetch(file);
