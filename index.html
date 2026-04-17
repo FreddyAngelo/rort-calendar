@@ -48,6 +48,11 @@
   }
 
   .header-actions { display: flex; gap: 8px; align-items: center; }
+  .last-updated {
+    color: var(--text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
 
   .btn {
     background: var(--surface);
@@ -451,6 +456,7 @@
 <header>
   <h1>RÖRT CALENDAR</h1>
   <div class="header-actions">
+    <span class="last-updated" id="last-updated"></span>
     <a
       class="btn"
       href="https://github.com/FreddyAngelo/rort-calendar/actions/workflows/scrape-schedule.yml"
@@ -627,15 +633,34 @@ function parseCSV(text) {
 
 async function loadInitialData() {
   const files = Array.from({ length: 11 }, (_, i) => `data/rort_schedule_week${i + 1}.csv`);
+  let latestModified = null;
   for (const file of files) {
     try {
       const resp = await fetch(file);
       if (resp.ok) {
         const text = await resp.text();
         addEvents(parseCSV(text));
+        const lm = resp.headers.get('Last-Modified');
+        if (lm) {
+          const d = new Date(lm);
+          if (!isNaN(d) && (!latestModified || d > latestModified)) latestModified = d;
+        }
       }
     } catch (e) { /* skip */ }
   }
+  updateLastUpdated(latestModified);
+}
+
+function updateLastUpdated(date) {
+  const el = document.getElementById('last-updated');
+  if (!el) return;
+  if (!date) { el.textContent = ''; return; }
+  const formatted = date.toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+  el.textContent = `Updated ${formatted}`;
+  el.title = `Schedule data last updated ${date.toString()}`;
 }
 
 function addEvents(newEvents) {
