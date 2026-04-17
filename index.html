@@ -619,31 +619,7 @@
     background: var(--surface);
     flex-shrink: 0;
   }
-  .steps-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 10px;
-  }
-  .search-step {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-  .search-step .step-label {
-    color: var(--accent);
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 0.5px;
-  }
-  .search-step .room-tags {
+  .room-tags {
     display: inline-flex;
     gap: 4px;
     flex-wrap: wrap;
@@ -659,6 +635,11 @@
     align-items: center;
     gap: 4px;
   }
+  .room-tag.sauna {
+    background: rgba(212, 114, 84, 0.12);
+    border-color: rgba(212, 114, 84, 0.4);
+    color: #d47254;
+  }
   .room-tag-x {
     color: var(--text-muted);
     font-size: 11px;
@@ -666,7 +647,7 @@
     line-height: 1;
   }
   .room-tag-x:hover { color: var(--text); }
-  .search-step .room-select {
+  .room-select {
     background: transparent;
     border: 1px dashed var(--border);
     color: var(--text-muted);
@@ -675,34 +656,6 @@
     font-size: 11px;
     cursor: pointer;
     font-family: inherit;
-  }
-  .search-step input[type="number"] {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    width: 44px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-size: 12px;
-    font-family: inherit;
-    text-align: center;
-  }
-  .search-step .remove-step {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 14px;
-    cursor: pointer;
-    padding: 0 4px;
-    line-height: 1;
-    font-family: inherit;
-  }
-  .search-step .remove-step:hover { color: var(--text); }
-  .step-sep {
-    color: var(--text-muted);
-    font-size: 11px;
-    font-style: italic;
-    padding: 0 4px;
   }
   .add-step {
     background: transparent;
@@ -936,6 +889,185 @@
     font-size: 14px;
   }
   .match-row:hover .goto { color: var(--accent); }
+
+  /* ==================== Find view: step cards + collapse ==================== */
+  .find-topbar {
+    padding: 10px 20px;
+    background: var(--surface-2, #111);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .steps-col {
+    padding: 12px 20px 6px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow-y: auto;
+    max-height: 50vh;
+  }
+  .step-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0;
+  }
+  .step-card.is-sauna {
+    border-color: rgba(212, 114, 84, 0.4);
+    background: linear-gradient(180deg, rgba(212, 114, 84, 0.05), transparent);
+  }
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(196, 163, 90, 0.15);
+    border: 1px solid rgba(196, 163, 90, 0.4);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .step-card.is-sauna .step-num {
+    background: rgba(212, 114, 84, 0.15);
+    border-color: rgba(212, 114, 84, 0.4);
+    color: #d47254;
+  }
+  .step-main { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .step-line-1 {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text-muted);
+  }
+  .step-line-1 input[type="number"] {
+    width: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 3px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: inherit;
+    text-align: center;
+  }
+  .step-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+  }
+  .step-info .sauna-ico { color: #d47254; font-weight: 600; }
+  .remove-card {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 6px;
+    font-family: inherit;
+  }
+  .remove-card:hover { color: var(--text); }
+  .transition-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 4px 40px;
+    font-size: 11px;
+    color: var(--text-muted);
+    position: relative;
+  }
+  .transition-row::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: -2px;
+    bottom: -2px;
+    border-left: 1px dashed var(--border);
+  }
+  .transition-row input[type="number"] {
+    width: 42px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    text-align: center;
+    font-family: inherit;
+  }
+  .transition-row .t-hint { opacity: 0.6; font-style: italic; }
+  .steps-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0 4px 40px;
+  }
+  .collapse-handle {
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 3px 10px;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .collapse-handle:hover { color: var(--accent); border-color: var(--accent); }
+  .collapse-handle .chev { font-size: 9px; }
+
+  .find-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .find-summary:hover { background: #1d1d1d; }
+  .summary-steps {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .summary-steps .room-tag { font-size: 11px; padding: 2px 7px; }
+  .sum-arrow {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-style: italic;
+  }
+  .summary-spacer { flex: 1; }
+  .expand-chev {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px 10px;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .expand-chev:hover { color: var(--accent); border-color: var(--accent); }
+  .expand-chev .chev { font-size: 9px; }
+
+  /* Toggle visibility based on container state */
+  #find-container.collapsed .steps-col { display: none; }
+  #find-container:not(.collapsed) .find-summary { display: none; }
 
   /* Responsive: collapse sidebar on narrow screens */
   @media (max-width: 800px) {
@@ -1865,9 +1997,15 @@ function minutesToTime(m) {
   return `${String(Math.floor(m / 60)).padStart(2,'0')}:${String(m % 60).padStart(2,'0')}`;
 }
 
+// Sauna-specific rules
+const SAUNA_PREHEAT_MIN = 60;
+const SAUNA_WARM_WINDOW_MIN = 45;
+function isSaunaRoom(room) {
+  return typeof room === 'string' && room.toLowerCase().includes('sauna');
+}
+
 // Return array of free intervals across the given rooms on the given date,
 // within timeRange, with the given between-event buffer applied.
-// `warm` = true if an event ended within 30 min before this interval starts.
 function getExactFreeIntervals(date, rooms, timeRange, buffer) {
   const results = [];
   rooms.forEach(room => {
@@ -1879,38 +2017,47 @@ function getExactFreeIntervals(date, rooms, timeRange, buffer) {
     let cursor = timeRange.start;
     roomEvents.forEach(ev => {
       const freeEnd = ev.start - buffer;
-      if (freeEnd > cursor) {
-        const warm = roomEvents.some(prev => prev.end <= cursor && cursor - prev.end <= 30);
-        results.push({ room, start: cursor, end: freeEnd, warm });
-      }
+      if (freeEnd > cursor) results.push({ room, start: cursor, end: freeEnd });
       cursor = Math.max(cursor, ev.end + buffer);
     });
-    if (timeRange.end > cursor) {
-      const warm = roomEvents.some(prev => prev.end <= cursor && cursor - prev.end <= 30);
-      results.push({ room, start: cursor, end: timeRange.end, warm });
-    }
+    if (timeRange.end > cursor) results.push({ room, start: cursor, end: timeRange.end });
   });
   return results;
 }
 
-function getEffectiveDuration(step, interval) {
-  if (step.warmup > 0 && !interval.warm) return step.duration + step.warmup;
-  return step.duration;
+// Sauna is warm at `startMin` if another sauna session (existing event OR earlier
+// step in this compound search) ended within SAUNA_WARM_WINDOW_MIN minutes before.
+// Non-sauna rooms have no preheat concept.
+function isSaunaWarm(date, room, startMin, chainPath) {
+  const warmFromExisting = events.some(e => {
+    if (e.Date !== date || !isSaunaRoom(e.Room)) return false;
+    const endMin = timeToMinutes(e.End);
+    return endMin <= startMin && startMin - endMin <= SAUNA_WARM_WINDOW_MIN;
+  });
+  if (warmFromExisting) return true;
+  return chainPath.some(p =>
+    isSaunaRoom(p.room) && p.end <= startMin && startMin - p.end <= SAUNA_WARM_WINDOW_MIN
+  );
 }
 
-// Generalized N-step sequential placement finder. For each step, every candidate
-// interval is considered; the recursion enforces that each subsequent placement
-// starts no later than `prevEnd + maxTransition`.
-function findSequentialPlacements(freeByStep, steps, maxTransition) {
+function getEffectiveDuration(step, room, startMin, date, chainPath) {
+  if (!isSaunaRoom(room)) return step.duration;
+  const warm = isSaunaWarm(date, room, startMin, chainPath);
+  return warm ? step.duration : step.duration + SAUNA_PREHEAT_MIN;
+}
+
+// Generalized N-step sequential placement finder. `transitions[i]` is the max
+// allowed minutes between step `i` end and step `i+1` start.
+function findSequentialPlacements(freeByStep, steps, transitions, date) {
   const matches = [];
   function walk(stepIdx, prevEnd, path) {
     const intervals = freeByStep[stepIdx];
     const step = steps[stepIdx];
     intervals.forEach(iv => {
-      const dur = getEffectiveDuration(step, iv);
-      if (iv.end - iv.start < dur) return;
       const earliest = stepIdx === 0 ? iv.start : Math.max(iv.start, prevEnd);
-      if (stepIdx > 0 && earliest > prevEnd + maxTransition) return;
+      if (stepIdx > 0 && earliest > prevEnd + transitions[stepIdx - 1]) return;
+      const dur = getEffectiveDuration(step, iv.room, earliest, date, path);
+      if (iv.end - iv.start < dur) return;
       if (earliest + dur > iv.end) return;
       const placement = { room: iv.room, start: earliest, end: earliest + dur };
       const nextPath = path.concat([placement]);
@@ -1936,12 +2083,13 @@ function findCompoundSlots(config) {
       getExactFreeIntervals(date, step.rooms, config.timeRange, config.roomBuffer)
     );
 
-    let matches = findSequentialPlacements(freeByStep, config.steps, config.maxTransition);
+    let matches = findSequentialPlacements(freeByStep, config.steps, config.transitions, date);
 
     if (config.allowReverse && config.steps.length >= 2) {
       const reversedSteps = config.steps.slice().reverse();
       const reversedFree = freeByStep.slice().reverse();
-      const reverseMatches = findSequentialPlacements(reversedFree, reversedSteps, config.maxTransition);
+      const reversedTransitions = config.transitions.slice().reverse();
+      const reverseMatches = findSequentialPlacements(reversedFree, reversedSteps, reversedTransitions, date);
       reverseMatches.forEach(m => matches.push(m.slice().reverse()));
     }
 
@@ -1963,32 +2111,40 @@ function findCompoundSlots(config) {
 const SEARCH_STORAGE_KEY = 'rort-compound-search';
 
 function readSearchConfig() {
-  const panel = document.getElementById('find-panel');
+  const container = document.getElementById('find-container');
   const steps = [];
-  panel.querySelectorAll('.search-step').forEach(el => {
+  container.querySelectorAll('.step-card').forEach(el => {
     const rooms = [];
     el.querySelectorAll('.room-tag').forEach(tag => rooms.push(tag.dataset.room));
     const duration = parseInt(el.querySelector('.step-duration').value) || 60;
-    const warmup = parseInt(el.querySelector('.step-warmup')?.value) || 0;
-    if (rooms.length > 0) steps.push({ rooms, duration, warmup });
+    if (rooms.length > 0) steps.push({ rooms, duration });
   });
 
-  const startH = parseInt(panel.querySelector('#search-start').value);
-  const endH = parseInt(panel.querySelector('#search-end').value);
-  const dayFilter = new Set();
-  panel.querySelectorAll('.day-check input:checked').forEach(cb => dayFilter.add(cb.value));
-  const roomBuffer = parseInt(panel.querySelector('#search-buffer').value) || 15;
-  const maxTransition = parseInt(panel.querySelector('#search-transition').value) || 15;
-  const allowReverse = panel.querySelector('#search-reverse').checked;
+  const transitions = [];
+  container.querySelectorAll('.transition-row .step-maxgap').forEach(inp => {
+    const v = parseInt(inp.value);
+    transitions.push(Number.isFinite(v) ? v : 15);
+  });
+  // Ensure transitions.length === max(0, steps.length - 1)
+  while (transitions.length < steps.length - 1) transitions.push(15);
+  transitions.length = Math.max(0, steps.length - 1);
 
-  return { steps, timeRange: { start: startH * 60, end: endH * 60 }, dayFilter, roomBuffer, maxTransition, allowReverse };
+  const topbar = document.getElementById('find-topbar');
+  const startH = parseInt(topbar.querySelector('#search-start').value);
+  const endH = parseInt(topbar.querySelector('#search-end').value);
+  const dayFilter = new Set();
+  topbar.querySelectorAll('.day-check input:checked').forEach(cb => dayFilter.add(cb.value));
+  const roomBuffer = parseInt(topbar.querySelector('#search-buffer').value) || 15;
+  const allowReverse = topbar.querySelector('#search-reverse').checked;
+
+  return { steps, transitions, timeRange: { start: startH * 60, end: endH * 60 }, dayFilter, roomBuffer, allowReverse };
 }
 
 function saveSearchConfig(c) {
   try {
     localStorage.setItem(SEARCH_STORAGE_KEY, JSON.stringify({
-      steps: c.steps, timeRange: c.timeRange, dayFilter: Array.from(c.dayFilter),
-      roomBuffer: c.roomBuffer, maxTransition: c.maxTransition, allowReverse: c.allowReverse,
+      steps: c.steps, transitions: c.transitions, timeRange: c.timeRange,
+      dayFilter: Array.from(c.dayFilter), roomBuffer: c.roomBuffer, allowReverse: c.allowReverse,
     }));
   } catch (e) { /* quota / private mode — silent */ }
 }
@@ -1999,27 +2155,86 @@ function loadSearchConfig() {
     if (!raw) return null;
     const c = JSON.parse(raw);
     c.dayFilter = new Set(c.dayFilter);
+    // Migrate legacy `maxTransition` + per-step `warmup` → per-transition array.
+    if (!Array.isArray(c.transitions)) {
+      const legacyGap = Number.isFinite(c.maxTransition) ? c.maxTransition : 15;
+      const n = Array.isArray(c.steps) ? Math.max(0, c.steps.length - 1) : 0;
+      c.transitions = Array(n).fill(legacyGap);
+    }
+    if (Array.isArray(c.steps)) c.steps.forEach(s => delete s.warmup);
     return c;
   } catch (e) { return null; }
 }
 
 // ---------- Find-view UI ----------
+function stepHasSauna(rooms) {
+  return rooms.some(isSaunaRoom);
+}
+
 function buildStepHTML(idx, step) {
-  const roomTags = step.rooms.map(r =>
-    `<span class="room-tag" data-room="${escapeHtml(r)}">${escapeHtml(r)}<span class="room-tag-x">×</span></span>`
+  const rooms = step.rooms || [];
+  const isSauna = stepHasSauna(rooms);
+  const roomTags = rooms.map(r =>
+    `<span class="room-tag${isSaunaRoom(r) ? ' sauna' : ''}" data-room="${escapeHtml(r)}">${escapeHtml(r)}<span class="room-tag-x">×</span></span>`
   ).join('');
   const options = '<option value="">+ room</option>' +
     Array.from(visibleLocations).map(loc => `<option value="${escapeHtml(loc)}">${escapeHtml(loc)}</option>`).join('');
-  return `<div class="search-step" data-step="${idx}">
-    <span class="step-label">STEP ${idx + 1}</span>
-    <div class="room-tags">${roomTags}</div>
-    <select class="room-select">${options}</select>
-    <span>for</span>
-    <input type="number" class="step-duration" value="${step.duration}" min="15" max="480" step="15"><span>min</span>
-    <span>· warm</span>
-    <input type="number" class="step-warmup" value="${step.warmup || 0}" min="0" max="120" step="15"><span>min</span>
-    ${idx > 0 ? '<button class="remove-step" title="Remove step">×</button>' : ''}
+  const saunaInfo = isSauna
+    ? `<div class="step-info"><span class="sauna-ico">🔥 sauna</span> · needs ${SAUNA_PREHEAT_MIN} min preheat if cold · warm if another sauna session ended ≤${SAUNA_WARM_WINDOW_MIN} min earlier (no preheat needed)</div>`
+    : '';
+  return `<div class="step-card${isSauna ? ' is-sauna' : ''}" data-step="${idx}">
+    <span class="step-num">${idx + 1}</span>
+    <div class="step-main">
+      <div class="step-line-1">
+        <div class="room-tags">${roomTags}</div>
+        <select class="room-select">${options}</select>
+        <span>for</span>
+        <input type="number" class="step-duration" value="${step.duration}" min="15" max="480" step="15"><span>min</span>
+      </div>
+      ${saunaInfo}
+    </div>
+    <button class="remove-card" title="Remove step">×</button>
   </div>`;
+}
+
+function buildTransitionHTML(gap, nextIdx) {
+  const v = Number.isFinite(gap) ? gap : 15;
+  return `<div class="transition-row" data-for-step="${nextIdx}">
+    <span>↦ then, within</span>
+    <input type="number" class="step-maxgap" value="${v}" min="0" max="180" step="5">
+    <span>min</span>
+    <span class="t-hint">(max gap before step ${nextIdx + 1})</span>
+  </div>`;
+}
+
+function refreshStepCardSaunaState(stepEl) {
+  const rooms = Array.from(stepEl.querySelectorAll('.room-tag')).map(t => t.dataset.room);
+  const isSauna = stepHasSauna(rooms);
+  stepEl.classList.toggle('is-sauna', isSauna);
+  const main = stepEl.querySelector('.step-main');
+  let info = main.querySelector('.step-info');
+  if (isSauna && !info) {
+    info = document.createElement('div');
+    info.className = 'step-info';
+    info.innerHTML = `<span class="sauna-ico">🔥 sauna</span> · needs ${SAUNA_PREHEAT_MIN} min preheat if cold · warm if another sauna session ended ≤${SAUNA_WARM_WINDOW_MIN} min earlier (no preheat needed)`;
+    main.appendChild(info);
+  } else if (!isSauna && info) {
+    info.remove();
+  }
+}
+
+function renumberSteps(container) {
+  const cards = container.querySelectorAll('.step-card');
+  cards.forEach((card, i) => {
+    card.dataset.step = i;
+    const num = card.querySelector('.step-num');
+    if (num) num.textContent = String(i + 1);
+  });
+  container.querySelectorAll('.transition-row').forEach((row, i) => {
+    row.dataset.forStep = i + 1;
+    const hint = row.querySelector('.t-hint');
+    if (hint) hint.textContent = `(max gap before step ${i + 2})`;
+  });
 }
 
 function wireStepEvents(stepEl) {
@@ -2031,42 +2246,93 @@ function wireStepEvents(stepEl) {
     if (!val) return;
     if (stepEl.querySelector(`.room-tag[data-room="${CSS.escape(val)}"]`)) return;
     const tag = document.createElement('span');
-    tag.className = 'room-tag';
+    tag.className = 'room-tag' + (isSaunaRoom(val) ? ' sauna' : '');
     tag.dataset.room = val;
     tag.innerHTML = `${escapeHtml(val)}<span class="room-tag-x">×</span>`;
-    tag.querySelector('.room-tag-x').addEventListener('click', () => tag.remove());
+    tag.querySelector('.room-tag-x').addEventListener('click', () => {
+      tag.remove();
+      refreshStepCardSaunaState(stepEl);
+    });
     tagsContainer.appendChild(tag);
+    refreshStepCardSaunaState(stepEl);
   });
   stepEl.querySelectorAll('.room-tag .room-tag-x').forEach(x => {
-    x.addEventListener('click', () => x.parentElement.remove());
+    x.addEventListener('click', () => {
+      x.parentElement.remove();
+      refreshStepCardSaunaState(stepEl);
+    });
   });
-  const rm = stepEl.querySelector('.remove-step');
+  const rm = stepEl.querySelector('.remove-card');
   if (rm) {
     rm.addEventListener('click', () => {
-      const prev = stepEl.previousElementSibling;
-      if (prev && prev.classList.contains('step-sep')) prev.remove();
+      const container = document.getElementById('find-steps');
+      const cards = Array.from(container.querySelectorAll('.step-card'));
+      if (cards.length <= 1) return; // keep at least one step
+      const idx = cards.indexOf(stepEl);
+      // Remove the associated transition row (preceding for non-first, following for first).
+      const trans = Array.from(container.querySelectorAll('.transition-row'));
+      if (idx === 0 && trans.length > 0) trans[0].remove();
+      else if (idx > 0 && trans[idx - 1]) trans[idx - 1].remove();
       stepEl.remove();
+      renumberSteps(container);
     });
   }
+}
+
+function buildSummaryHTML(cfg) {
+  if (!cfg || !cfg.steps || cfg.steps.length === 0) return '';
+  const parts = [];
+  cfg.steps.forEach((s, i) => {
+    if (i > 0) {
+      const gap = cfg.transitions[i - 1];
+      parts.push(`<span class="sum-arrow">↦ ${Number.isFinite(gap) ? gap : 15}m</span>`);
+    }
+    const sauna = stepHasSauna(s.rooms);
+    const tags = s.rooms.map(r =>
+      `<span class="room-tag${isSaunaRoom(r) ? ' sauna' : ''}">${escapeHtml(r)}</span>`
+    ).join(' ');
+    parts.push(`<span class="sum-step">${tags} <span style="color:var(--text-muted);font-size:11px;">${s.duration}m</span></span>`);
+  });
+  return parts.join(' ');
+}
+
+function refreshSummary() {
+  const sum = document.getElementById('find-summary-steps');
+  if (!sum) return;
+  const cfg = readSearchConfig();
+  sum.innerHTML = buildSummaryHTML(cfg);
+}
+
+function setFindCollapsed(collapsed) {
+  const container = document.getElementById('find-container');
+  if (!container) return;
+  if (collapsed) refreshSummary();
+  container.classList.toggle('collapsed', collapsed);
 }
 
 function initializeFindView() {
   const container = document.getElementById('find-container');
   const saved = loadSearchConfig();
   const defaultSteps = (saved && saved.steps.length) ? saved.steps : [
-    { rooms: [], duration: 90, warmup: 15 },
-    { rooms: [], duration: 60, warmup: 0 },
+    { rooms: [], duration: 90 },
+    { rooms: [], duration: 60 },
   ];
+  const defaultTransitions = (saved && Array.isArray(saved.transitions))
+    ? saved.transitions
+    : Array(Math.max(0, defaultSteps.length - 1)).fill(15);
   const defaultStart = saved ? Math.floor(saved.timeRange.start / 60) : 16;
   const defaultEnd = saved ? Math.ceil(saved.timeRange.end / 60) : 22;
   const defaultBuffer = saved ? saved.roomBuffer : 15;
-  const defaultTransition = saved ? saved.maxTransition : 15;
   const defaultReverse = saved ? saved.allowReverse : false;
   const defaultDays = saved ? saved.dayFilter : new Set(['Monday','Tuesday','Wednesday','Thursday','Friday']);
 
-  const stepsHTML = defaultSteps.map((s, i) =>
-    (i > 0 ? '<span class="step-sep">then →</span>' : '') + buildStepHTML(i, s)
-  ).join('');
+  // Interleave step cards with transition rows
+  const stepsHTML = defaultSteps.map((s, i) => {
+    const card = buildStepHTML(i, s);
+    if (i === 0) return card;
+    const gap = defaultTransitions[i - 1];
+    return buildTransitionHTML(gap, i) + card;
+  }).join('');
 
   const dayNames = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   const dayAbbrev = ['Mo','Tu','We','Th','Fr','Sa','Su'];
@@ -2084,8 +2350,7 @@ function initializeFindView() {
   }).join('');
 
   container.innerHTML = `
-    <div id="find-panel" class="find-panel">
-      <div class="steps-row" id="search-steps">${stepsHTML}<button class="add-step" id="add-step-btn">+ step</button></div>
+    <div class="find-topbar" id="find-topbar">
       <div class="filter-row">
         <span class="fl">Time</span>
         <select id="search-start">${startOpts}</select>
@@ -2096,14 +2361,27 @@ function initializeFindView() {
         <span class="divider"></span>
         <span class="fl">Buffer</span>
         <input type="number" id="search-buffer" value="${defaultBuffer}" min="0" max="60"><span>m</span>
-        <span class="fl">Max gap</span>
-        <input type="number" id="search-transition" value="${defaultTransition}" min="0" max="120"><span>m</span>
-        <label class="reverse-check"><input type="checkbox" id="search-reverse"${defaultReverse ? ' checked' : ''}>Allow reverse</label>
+        <label class="reverse-check"><input type="checkbox" id="search-reverse"${defaultReverse ? ' checked' : ''}> Allow reverse</label>
         <span class="spacer"></span>
         <button class="search-btn" id="search-btn">Search</button>
         <span class="clear-link" id="search-clear-btn">Clear</span>
       </div>
     </div>
+
+    <div class="steps-col" id="find-steps">
+      ${stepsHTML}
+      <div class="steps-footer">
+        <button class="add-step" id="add-step-btn">+ add step</button>
+        <button class="collapse-handle" id="collapse-steps-btn" title="Hide steps"><span>Hide steps</span><span class="chev">▲</span></button>
+      </div>
+    </div>
+
+    <div class="find-summary" id="find-summary">
+      <div class="summary-steps" id="find-summary-steps"></div>
+      <span class="summary-spacer"></span>
+      <button class="expand-chev" id="expand-steps-btn" title="Edit steps"><span>Edit steps</span><span class="chev">▼</span></button>
+    </div>
+
     <div class="list-scope">
       <span style="color:var(--text-muted);font-size:12px;">Show:</span>
       <div class="scope-tabs" id="scope-tabs">
@@ -2116,20 +2394,20 @@ function initializeFindView() {
     <div class="results-list" id="find-results"></div>
   `;
 
-  container.querySelectorAll('.search-step').forEach(wireStepEvents);
+  container.querySelectorAll('.step-card').forEach(wireStepEvents);
 
   document.getElementById('add-step-btn').addEventListener('click', () => {
-    const stepsContainer = document.getElementById('search-steps');
-    const addBtn = document.getElementById('add-step-btn');
-    const idx = stepsContainer.querySelectorAll('.search-step').length;
-    const sep = document.createElement('span');
-    sep.className = 'step-sep';
-    sep.textContent = 'then →';
-    stepsContainer.insertBefore(sep, addBtn);
-    const wrap = document.createElement('div');
-    wrap.innerHTML = buildStepHTML(idx, { rooms: [], duration: 60, warmup: 0 });
-    const stepEl = wrap.firstElementChild;
-    stepsContainer.insertBefore(stepEl, addBtn);
+    const stepsContainer = document.getElementById('find-steps');
+    const footer = stepsContainer.querySelector('.steps-footer');
+    const idx = stepsContainer.querySelectorAll('.step-card').length;
+    // Insert transition row before the new card (since idx > 0 now).
+    const transWrap = document.createElement('div');
+    transWrap.innerHTML = buildTransitionHTML(15, idx);
+    stepsContainer.insertBefore(transWrap.firstElementChild, footer);
+    const cardWrap = document.createElement('div');
+    cardWrap.innerHTML = buildStepHTML(idx, { rooms: [], duration: 60 });
+    const stepEl = cardWrap.firstElementChild;
+    stepsContainer.insertBefore(stepEl, footer);
     wireStepEvents(stepEl);
   });
 
@@ -2138,14 +2416,23 @@ function initializeFindView() {
     if (cfg.steps.length === 0) return;
     saveSearchConfig(cfg);
     findCompoundSlots(cfg);
+    setFindCollapsed(true);
     renderResultsList();
   });
 
   document.getElementById('search-clear-btn').addEventListener('click', () => {
     compoundSearchActive = false;
     compoundSearchResults = new Map();
+    setFindCollapsed(false);
     renderResultsList();
   });
+
+  document.getElementById('collapse-steps-btn').addEventListener('click', () => setFindCollapsed(true));
+  document.getElementById('expand-steps-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setFindCollapsed(false);
+  });
+  document.getElementById('find-summary').addEventListener('click', () => setFindCollapsed(false));
 
   container.querySelectorAll('#scope-tabs span').forEach(span => {
     span.addEventListener('click', () => {
@@ -2252,62 +2539,96 @@ function runTests() {
   assert('Event mid-range → 2 intervals',
     free.length === 2 && free[0].end === 1020 - 15 && free[1].start === 1080 + 15);
 
-  events = [{ Date: '2099-01-01', Room: 'Studio 1', Start: '15:40', End: '15:55' }];
-  free = getExactFreeIntervals('2099-01-01', ['Studio 1'], { start: 960, end: 1320 }, 15);
-  assert('Warm flag when prev event ended within 30 min of cursor',
-    free.length >= 1 && free[0].warm === true);
+  // Non-sauna: no warmup ever
+  events = [];
+  assert('Non-sauna duration is step.duration',
+    getEffectiveDuration({ duration: 60 }, 'Studio 1', 600, '2099-01-01', []) === 60);
 
-  // getEffectiveDuration
-  const step = { rooms: ['A'], duration: 60, warmup: 15 };
-  assert('Warmup adds to cold interval', getEffectiveDuration(step, { warm: false }) === 75);
-  assert('Warmup ignored on warm interval', getEffectiveDuration(step, { warm: true }) === 60);
+  // Sauna cold: +60 preheat
+  events = [];
+  assert('Sauna cold adds 60 min preheat',
+    getEffectiveDuration({ duration: 60 }, 'Sauna', 600, '2099-01-01', []) === 120);
 
-  // findSequentialPlacements
-  let steps = [{ rooms: ['A'], duration: 60, warmup: 0 }];
-  let fbs = [[{ room: 'A', start: 0, end: 120, warm: false }]];
-  let matches = findSequentialPlacements(fbs, steps, 15);
+  // Sauna warm via existing event within 45 min
+  events = [{ Date: '2099-01-01', Room: 'Sauna', Start: '09:00', End: '09:30' }];
+  assert('Sauna warm (existing event ended 30 min prior, within 45)',
+    getEffectiveDuration({ duration: 60 }, 'Sauna', 600, '2099-01-01', []) === 60);
+
+  events = [{ Date: '2099-01-01', Room: 'Sauna', Start: '08:00', End: '09:00' }];
+  assert('Sauna cold (prev ended 60 min prior, outside 45)',
+    getEffectiveDuration({ duration: 60 }, 'Sauna', 600, '2099-01-01', []) === 120);
+
+  // Sauna warm via chain (prior step in same compound search)
+  events = [];
+  const chain = [{ room: 'Sauna', start: 500, end: 580 }];
+  assert('Sauna warm via chain (prior step ended 20 min prior)',
+    getEffectiveDuration({ duration: 60 }, 'Sauna', 600, '2099-01-01', chain) === 60);
+
+  // findSequentialPlacements with transitions array
+  events = [];
+  let steps = [{ rooms: ['A'], duration: 60 }];
+  let fbs = [[{ room: 'A', start: 0, end: 120 }]];
+  let matches = findSequentialPlacements(fbs, steps, [], '2099-01-01');
   assert('1-step: 1 match', matches.length === 1 && matches[0][0].end === 60);
 
   steps = [
-    { rooms: ['A'], duration: 60, warmup: 0 },
-    { rooms: ['B'], duration: 30, warmup: 0 },
+    { rooms: ['A'], duration: 60 },
+    { rooms: ['B'], duration: 30 },
   ];
   fbs = [
-    [{ room: 'A', start: 0, end: 90, warm: false }],
-    [{ room: 'B', start: 60, end: 120, warm: false }],
+    [{ room: 'A', start: 0, end: 90 }],
+    [{ room: 'B', start: 60, end: 120 }],
   ];
-  matches = findSequentialPlacements(fbs, steps, 15);
+  matches = findSequentialPlacements(fbs, steps, [15], '2099-01-01');
   assert('2-step: 1 match back-to-back',
     matches.length === 1 && matches[0][1].start === 60);
 
-  // CRITICAL: 3-step regression test for copy bug
+  // 3-step regression
   steps = [
-    { rooms: ['A'], duration: 30, warmup: 0 },
-    { rooms: ['B'], duration: 30, warmup: 0 },
-    { rooms: ['C'], duration: 30, warmup: 0 },
+    { rooms: ['A'], duration: 30 },
+    { rooms: ['B'], duration: 30 },
+    { rooms: ['C'], duration: 30 },
   ];
   fbs = [
-    [{ room: 'A', start: 0, end: 30, warm: false }],
-    [{ room: 'B', start: 30, end: 60, warm: false }],
-    [{ room: 'C', start: 60, end: 90, warm: false }],
+    [{ room: 'A', start: 0, end: 30 }],
+    [{ room: 'B', start: 30, end: 60 }],
+    [{ room: 'C', start: 60, end: 90 }],
   ];
-  matches = findSequentialPlacements(fbs, steps, 15);
+  matches = findSequentialPlacements(fbs, steps, [15, 15], '2099-01-01');
   assert('3-step: works with N=3 (regression)',
     matches.length === 1 && matches[0].length === 3 && matches[0][2].end === 90);
 
-  // Max-transition boundary
+  // Per-transition max gap — different limits between pairs
   steps = [
-    { rooms: ['A'], duration: 30, warmup: 0 },
-    { rooms: ['B'], duration: 30, warmup: 0 },
+    { rooms: ['A'], duration: 30 },
+    { rooms: ['B'], duration: 30 },
   ];
   fbs = [
-    [{ room: 'A', start: 0, end: 30, warm: false }],
-    [{ room: 'B', start: 50, end: 100, warm: false }],
+    [{ room: 'A', start: 0, end: 30 }],
+    [{ room: 'B', start: 50, end: 100 }],
   ];
-  matches = findSequentialPlacements(fbs, steps, 15);
-  assert('max-transition 15: gap of 20 min does NOT match', matches.length === 0);
-  matches = findSequentialPlacements(fbs, steps, 30);
-  assert('max-transition 30: gap of 20 min DOES match', matches.length === 1);
+  matches = findSequentialPlacements(fbs, steps, [15], '2099-01-01');
+  assert('per-step gap 15: 20-min gap does NOT match', matches.length === 0);
+  matches = findSequentialPlacements(fbs, steps, [30], '2099-01-01');
+  assert('per-step gap 30: 20-min gap DOES match', matches.length === 1);
+
+  // Per-transition: 1→2 tight, 2→3 loose
+  steps = [
+    { rooms: ['A'], duration: 30 },
+    { rooms: ['B'], duration: 30 },
+    { rooms: ['C'], duration: 30 },
+  ];
+  fbs = [
+    [{ room: 'A', start: 0, end: 30 }],
+    [{ room: 'B', start: 30, end: 60 }],
+    [{ room: 'C', start: 120, end: 160 }],
+  ];
+  matches = findSequentialPlacements(fbs, steps, [15, 60], '2099-01-01');
+  assert('per-transition [15,60]: 60-min gap to step 3 matches',
+    matches.length === 1 && matches[0][2].start === 120);
+  matches = findSequentialPlacements(fbs, steps, [15, 30], '2099-01-01');
+  assert('per-transition [15,30]: 60-min gap to step 3 does NOT match',
+    matches.length === 0);
 
   events = origEvents;
   console.log(`\nTests: ${passed} passed, ${failed} failed`);
