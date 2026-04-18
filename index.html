@@ -592,6 +592,61 @@
   .proposal-block.narrow .proposal-time { line-height: 1.15; }
   .proposal-block.narrow .proposal-time > span { display: block; }
   .proposal-block.narrow .proposal-time .t-sep { display: none; }
+
+  /* Two-zone variant: cold-sauna proposals split into a hatched preheat zone
+     (top) and a clean usage zone (bottom). */
+  .proposal-block.has-heat {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .proposal-block.has-heat .heat-zone {
+    flex: 0 0 auto;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(212, 114, 84, 0.18) 0 5px,
+      rgba(212, 114, 84, 0.06) 5px 10px
+    );
+    border-bottom: 1px dashed rgba(212, 114, 84, 0.5);
+    color: rgba(229, 144, 122, 0.9);
+    padding: 4px 5px 3px 25px;
+    font-size: 9px;
+    line-height: 1.15;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .proposal-block.has-heat .heat-zone .flame { font-size: 10px; }
+  .proposal-block.has-heat .use-zone {
+    flex: 1 1 auto;
+    padding: 4px 5px 3px 5px;
+    font-size: 10px;
+    color: var(--prop-color);
+    line-height: 1.2;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .proposal-block.has-heat .use-zone .use-room {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .proposal-block.has-heat.narrow {
+    padding: 0;
+  }
+  .proposal-block.has-heat.narrow .heat-zone {
+    padding: 22px 3px 3px 3px;
+    justify-content: center;
+    text-align: center;
+  }
+  .proposal-block.has-heat.narrow .use-zone {
+    padding: 3px 4px;
+    font-size: 9px;
+  }
+  .proposal-block.has-heat.narrow .use-zone .use-time { display: flex; flex-direction: column; line-height: 1.1; }
+  .proposal-block.has-heat.narrow .use-zone .use-time .t-sep { display: none; }
+
   .proposal-svg {
     position: absolute;
     top: 0;
@@ -599,6 +654,7 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
+    z-index: 4;
   }
   .proposal-line {
     stroke-width: 1.5;
@@ -1877,7 +1933,7 @@ function renderDayView() {
         placements.forEach(p => {
           const locIdx = visLocs.indexOf(p.room);
           if (locIdx === -1) return;
-          items.push({ matchIdx, color, locIdx, room: p.room, start: p.start, end: p.end });
+          items.push({ matchIdx, color, locIdx, room: p.room, start: p.start, end: p.end, heatMin: p.heatMin || 0 });
         });
       });
 
@@ -1927,14 +1983,35 @@ function renderDayView() {
         const left = timeColW + it.locIdx * colW + it.subCol * subW + 2;
         const width = subW - 4;
         const b = document.createElement('div');
-        b.className = 'proposal-block' + (it.subColCount > 1 ? ' narrow' : '');
+        const hasHeat = it.heatMin > 0;
+        b.className = 'proposal-block'
+          + (it.subColCount > 1 ? ' narrow' : '')
+          + (hasHeat ? ' has-heat' : '');
         b.style.cssText = `top:${top}px;height:${height}px;left:${left}px;width:${width}px;--prop-color:${it.color};`;
-        const showTime = (it.end - it.start) >= (it.subColCount > 1 ? 45 : 30);
-        const timeHTML = showTime
-          ? `<div class="proposal-time"><span>${minutesToTime(it.start)}</span><span class="t-sep">–</span><span>${minutesToTime(it.end)}</span></div>`
-          : '';
-        b.innerHTML = `<span class="match-num">${it.matchIdx + 1}</span>${timeHTML}`;
-        b.title = `Proposal ${it.matchIdx + 1} · ${it.room} · ${minutesToTime(it.start)}–${minutesToTime(it.end)}`;
+        if (hasHeat) {
+          const heatH = it.heatMin * pxPerMin;
+          const useStart = it.start + it.heatMin;
+          const useDur = it.end - useStart;
+          const isNarrow = it.subColCount > 1;
+          const useTimeHTML = isNarrow
+            ? `<span class="use-time"><span>${minutesToTime(useStart)}</span><span class="t-sep">–</span><span>${minutesToTime(it.end)}</span></span>`
+            : `<span class="use-time">${minutesToTime(useStart)}–${minutesToTime(it.end)}</span>`;
+          const useBody = isNarrow
+            ? `<span class="use-room">${useDur}m</span><br>${useTimeHTML}`
+            : `<span class="use-room">${escapeHtml(it.room)}</span> · ${useDur}m<br>${useTimeHTML}`;
+          b.innerHTML = `<span class="match-num">${it.matchIdx + 1}</span>`
+            + `<div class="heat-zone" style="height:${heatH}px;"><span class="flame">🔥</span><span>preheat · ${it.heatMin}m</span></div>`
+            + `<div class="use-zone">${useBody}</div>`;
+        } else {
+          const showTime = (it.end - it.start) >= (it.subColCount > 1 ? 45 : 30);
+          const timeHTML = showTime
+            ? `<div class="proposal-time"><span>${minutesToTime(it.start)}</span><span class="t-sep">–</span><span>${minutesToTime(it.end)}</span></div>`
+            : '';
+          b.innerHTML = `<span class="match-num">${it.matchIdx + 1}</span>${timeHTML}`;
+        }
+        b.title = hasHeat
+          ? `Proposal ${it.matchIdx + 1} · ${it.room} · ${minutesToTime(it.start + it.heatMin)}–${minutesToTime(it.end)} (${it.heatMin}m preheat + ${it.end - it.start - it.heatMin}m use)`
+          : `Proposal ${it.matchIdx + 1} · ${it.room} · ${minutesToTime(it.start)}–${minutesToTime(it.end)}`;
         overlay.appendChild(b);
         const g = groupMap.get(it.matchIdx) || { els: [], color: it.color };
         g.els.push(b);
@@ -2069,7 +2146,8 @@ function findSequentialPlacements(freeByStep, steps, transitions, date) {
       const dur = getEffectiveDuration(step, iv.room, earliest, date, path);
       if (iv.end - iv.start < dur) return;
       if (earliest + dur > iv.end) return;
-      const placement = { room: iv.room, start: earliest, end: earliest + dur };
+      const heatMin = dur - step.duration;
+      const placement = { room: iv.room, start: earliest, end: earliest + dur, heatMin };
       const nextPath = path.concat([placement]);
       if (stepIdx === steps.length - 1) matches.push(nextPath);
       else walk(stepIdx + 1, placement.end, nextPath);
