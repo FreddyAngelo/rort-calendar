@@ -2030,17 +2030,24 @@ function renderDayView() {
           const c = els[i + 1];
           const ax = a.offsetLeft, ay = a.offsetTop, aw = a.offsetWidth, ah = a.offsetHeight;
           const cx = c.offsetLeft, cy = c.offsetTop, cw = c.offsetWidth, ch = c.offsetHeight;
+          // For a has-heat target, anchor to the top of the use zone, not the
+          // block top — otherwise the connector slopes back in time across the
+          // preheat that overlaps the prior step.
+          const cHeat = c.querySelector('.heat-zone');
+          const cHeadOffset = cHeat ? cHeat.offsetHeight : 0;
+          const cUseTop = cy + cHeadOffset;
+          const cUseH = ch - cHeadOffset;
           const sameCol = Math.abs(ax - cx) < 4;
           let x1, y1, x2, y2;
           if (sameCol) {
             x1 = ax + aw / 2; y1 = ay + ah;
-            x2 = cx + cw / 2; y2 = cy;
+            x2 = cx + cw / 2; y2 = cUseTop;
           } else {
             const aIsLeft = ax < cx;
             x1 = aIsLeft ? ax + aw : ax;
             y1 = ay + ah / 2;
             x2 = aIsLeft ? cx : cx + cw;
-            y2 = cy + ch / 2;
+            y2 = cUseTop + cUseH / 2;
           }
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           const midX = (x1 + x2) / 2;
@@ -2093,15 +2100,23 @@ function isSaunaRoom(room) {
 
 // Return array of free intervals across the given rooms on the given date,
 // within timeRange, with the given between-event buffer applied.
+// Sauna rooms are widened backward by SAUNA_PREHEAT_MIN so an unattended
+// preheat can run before the guest-availability window. The placement
+// finder still enforces useStart >= timeRange.start so the guest session
+// itself stays in-range.
 function getExactFreeIntervals(date, rooms, timeRange, buffer) {
   const results = [];
   rooms.forEach(room => {
+    const earlyBound = isSaunaRoom(room)
+      ? Math.max(0, timeRange.start - SAUNA_PREHEAT_MIN)
+      : timeRange.start;
+
     const roomEvents = events
       .filter(e => e.Date === date && e.Room === room)
       .map(e => ({ start: timeToMinutes(e.Start), end: timeToMinutes(e.End) }))
       .sort((a, b) => a.start - b.start);
 
-    let cursor = timeRange.start;
+    let cursor = earlyBound;
     roomEvents.forEach(ev => {
       const freeEnd = ev.start - buffer;
       if (freeEnd > cursor) results.push({ room, start: cursor, end: freeEnd });
@@ -2134,20 +2149,48 @@ function getEffectiveDuration(step, room, startMin, date, chainPath) {
 }
 
 // Generalized N-step sequential placement finder. `transitions[i]` is the max
-// allowed minutes between step `i` end and step `i+1` start.
-function findSequentialPlacements(freeByStep, steps, transitions, date) {
+// allowed minutes between step `i` USE end and step `i+1` USE start (the guest's
+// actual walk-over time — preheat is unattended and does not count).
+//
+// Cold-sauna semantics: preheat occupies the sauna room but not the guest. It
+// runs concurrently with the preceding step, ending at useStart so the sauna
+// is warm on arrival. The placement's `start` is the block top (= preStart
+// when cold, = useStart otherwise); `end` is the usage end. `heatMin` tells
+// the renderer how tall the hatched preheat zone is.
+function findSequentialPlacements(freeByStep, steps, transitions, date, timeRange) {
   const matches = [];
+  // timeRange is optional for tests; when provided, useStart is clamped so the
+  // guest session stays inside the configured window (sauna preheat may run
+  // before timeRange.start thanks to widened sauna free intervals).
+  const guestStart = timeRange ? timeRange.start : 0;
   function walk(stepIdx, prevEnd, path) {
     const intervals = freeByStep[stepIdx];
     const step = steps[stepIdx];
     intervals.forEach(iv => {
-      const earliest = stepIdx === 0 ? iv.start : Math.max(iv.start, prevEnd);
-      if (stepIdx > 0 && earliest > prevEnd + transitions[stepIdx - 1]) return;
-      const dur = getEffectiveDuration(step, iv.room, earliest, date, path);
-      if (iv.end - iv.start < dur) return;
-      if (earliest + dur > iv.end) return;
-      const heatMin = dur - step.duration;
-      const placement = { room: iv.room, start: earliest, end: earliest + dur, heatMin };
+      const sauna = isSaunaRoom(iv.room);
+      // Warm check anchored at max(iv.start, prevEnd, guestStart). Sauna warmth
+      // decays monotonically, so "cold at anchor" implies "cold at any later
+      // useStart".
+      const anchorStart = stepIdx === 0
+        ? Math.max(iv.start, guestStart)
+        : Math.max(iv.start, prevEnd, guestStart);
+      const warm = sauna ? isSaunaWarm(date, iv.room, anchorStart, path) : false;
+      const preheat = (sauna && !warm) ? SAUNA_PREHEAT_MIN : 0;
+
+      // Preheat must fit inside the sauna free interval: preStart >= iv.start
+      // ⇒ useStart >= iv.start + preheat. Guest session must also stay inside
+      // the configured time range: useStart >= guestStart.
+      const minUseStart = Math.max(iv.start + preheat, guestStart);
+      const useStart = stepIdx === 0 ? minUseStart : Math.max(prevEnd, minUseStart);
+
+      // Transition gap measured to guest arrival (useStart), not preheat start.
+      if (stepIdx > 0 && useStart > prevEnd + transitions[stepIdx - 1]) return;
+
+      const useEnd = useStart + step.duration;
+      if (useEnd > iv.end) return;
+
+      const preStart = useStart - preheat;
+      const placement = { room: iv.room, start: preStart, end: useEnd, heatMin: preheat };
       const nextPath = path.concat([placement]);
       if (stepIdx === steps.length - 1) matches.push(nextPath);
       else walk(stepIdx + 1, placement.end, nextPath);
@@ -2171,13 +2214,13 @@ function findCompoundSlots(config) {
       getExactFreeIntervals(date, step.rooms, config.timeRange, config.roomBuffer)
     );
 
-    let matches = findSequentialPlacements(freeByStep, config.steps, config.transitions, date);
+    let matches = findSequentialPlacements(freeByStep, config.steps, config.transitions, date, config.timeRange);
 
     if (config.allowReverse && config.steps.length >= 2) {
       const reversedSteps = config.steps.slice().reverse();
       const reversedFree = freeByStep.slice().reverse();
       const reversedTransitions = config.transitions.slice().reverse();
-      const reverseMatches = findSequentialPlacements(reversedFree, reversedSteps, reversedTransitions, date);
+      const reverseMatches = findSequentialPlacements(reversedFree, reversedSteps, reversedTransitions, date, config.timeRange);
       reverseMatches.forEach(m => matches.push(m.slice().reverse()));
     }
 
@@ -2577,10 +2620,13 @@ function renderResultsList() {
     const rows = matches.map(m => {
       const first = m[0];
       const last = m[m.length - 1];
-      const timeLabel = `${minutesToTime(first.start)} → ${minutesToTime(last.end)}`;
+      // Show guest arrival → departure. Preheat is unattended, so skip it.
+      const firstArrival = first.start + (first.heatMin || 0);
+      const timeLabel = `${minutesToTime(firstArrival)} → ${minutesToTime(last.end)}`;
       const flow = m.map(p => `<span class="room-pill">${escapeHtml(p.room)}</span>`)
         .join('<span class="sep">→</span>');
-      const durs = m.map(p => `${p.end - p.start}m`).join(' + ');
+      // Per-step duration is the session the guest experiences (exclude preheat).
+      const durs = m.map(p => `${p.end - p.start - (p.heatMin || 0)}m`).join(' + ');
       return `<div class="match-row" data-date="${date}"><span class="arrow">→</span><span class="time">${timeLabel}</span><span class="flow">${flow}</span><span class="dur">${durs}</span><span class="goto">›</span></div>`;
     }).join('');
     return `<div class="day-group${isToday ? ' today' : ''}">
@@ -2717,6 +2763,94 @@ function runTests() {
   matches = findSequentialPlacements(fbs, steps, [15, 30], '2099-01-01');
   assert('per-transition [15,30]: 60-min gap to step 3 does NOT match',
     matches.length === 0);
+
+  // Cold sauna after non-sauna: preheat overlaps prev step, use is back-to-back.
+  // Breathwork 16:00–17:00 (960–1020), sauna free 13:15–20:00 (795–1200), 75m sauna.
+  events = [];
+  steps = [
+    { rooms: ['Studio 1'], duration: 60 },
+    { rooms: ['Sauna'],    duration: 75 },
+  ];
+  fbs = [
+    [{ room: 'Studio 1', start: 960,  end: 1020 }],
+    [{ room: 'Sauna',    start: 795,  end: 1200 }],
+  ];
+  matches = findSequentialPlacements(fbs, steps, [15], '2099-01-01');
+  assert('Cold sauna: preheat overlaps prev, useStart = prevEnd',
+    matches.length === 1
+      && matches[0][1].heatMin === 60
+      && matches[0][1].start === 960            // preStart = 16:00 = 17:00 − 60
+      && matches[0][1].end === 1020 + 75);      // useEnd   = 17:00 + 75 = 18:15
+
+  // 0-minute gap cap still places (preheat overlaps prev instead of pushing use later).
+  matches = findSequentialPlacements(fbs, steps, [0], '2099-01-01');
+  assert('Cold sauna: 0-min gap cap still places (preheat overlap only)',
+    matches.length === 1
+      && matches[0][1].start === 960
+      && matches[0][1].end === 1020 + 75);
+
+  // Sauna free only from 16:15 (975): preheat can't start before iv.start,
+  // so useStart = 17:15 and gap = 15 (exactly at cap).
+  fbs = [
+    [{ room: 'Studio 1', start: 960,  end: 1020 }],
+    [{ room: 'Sauna',    start: 975,  end: 1200 }],
+  ];
+  matches = findSequentialPlacements(fbs, steps, [15], '2099-01-01');
+  assert('Cold sauna: iv.start clamp → useStart = iv.start + 60 (gap at cap)',
+    matches.length === 1
+      && matches[0][1].start === 975           // preStart = iv.start = 16:15
+      && matches[0][1].end === 1035 + 75);     // useEnd   = 17:15 + 75 = 18:30
+
+  matches = findSequentialPlacements(fbs, steps, [0], '2099-01-01');
+  assert('Cold sauna: iv.start clamp with 0-min cap → no match',
+    matches.length === 0);
+
+  // Preheat can start BEFORE timeRange.start (unattended) so the guest's first
+  // sauna session can begin exactly at timeRange.start.
+  events = [];
+  steps = [{ rooms: ['Sauna'], duration: 60 }];
+  let ivs = getExactFreeIntervals('2099-01-01', ['Sauna'], { start: 16*60, end: 22*60 }, 15);
+  assert('Sauna free interval widened backward by 60 min',
+    ivs.length === 1 && ivs[0].start === 15*60 && ivs[0].end === 22*60);
+
+  matches = findSequentialPlacements([ivs], steps, [], '2099-01-01', { start: 16*60, end: 22*60 });
+  assert('Cold sauna at window start: preheat 15:00–16:00, use 16:00–17:00',
+    matches.length === 1
+      && matches[0][0].start === 15*60        // preStart before timeRange
+      && matches[0][0].heatMin === 60
+      && matches[0][0].end === 17*60);        // useEnd = 16:00 + 60
+
+  // Non-sauna rooms are NOT widened backward.
+  ivs = getExactFreeIntervals('2099-01-01', ['Studio 1'], { start: 16*60, end: 22*60 }, 15);
+  assert('Non-sauna free interval starts at timeRange.start (no widening)',
+    ivs.length === 1 && ivs[0].start === 16*60);
+
+  // Warm-within-45 from an event ending BEFORE timeRange.start: no preheat.
+  events = [{ Date: '2099-01-01', Room: 'Sauna', Start: '15:00', End: '15:30' }];
+  ivs = getExactFreeIntervals('2099-01-01', ['Sauna'], { start: 16*60, end: 22*60 }, 15);
+  matches = findSequentialPlacements([ivs], steps, [], '2099-01-01', { start: 16*60, end: 22*60 });
+  assert('Prior session ended 15:30 → warm at 16:00, no preheat',
+    matches.length === 1
+      && matches[0][0].heatMin === 0
+      && matches[0][0].start === 16*60
+      && matches[0][0].end === 17*60);
+
+  // Warm sauna via chain: second sauna step is back-to-back with no preheat.
+  events = [];
+  steps = [
+    { rooms: ['Sauna'], duration: 60 },
+    { rooms: ['Sauna'], duration: 45 },
+  ];
+  fbs = [
+    [{ room: 'Sauna', start: 600, end: 900 }],
+    [{ room: 'Sauna', start: 600, end: 900 }],
+  ];
+  matches = findSequentialPlacements(fbs, steps, [15], '2099-01-01');
+  assert('Warm-via-chain sauna: heatMin=0, back-to-back with first',
+    matches.length === 1
+      && matches[0][0].heatMin === 60          // first is cold
+      && matches[0][1].heatMin === 0           // second is warm
+      && matches[0][1].start === matches[0][0].end);
 
   events = origEvents;
   console.log(`\nTests: ${passed} passed, ${failed} failed`);
