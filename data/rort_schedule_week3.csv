@@ -9,7 +9,7 @@ Date,Day,Start,End,Duration_min,Room,Class,Instructor
 2026-06-08,Monday,19:15,20:30,75,Studio 2,Yoga SLOW,Louise
 2026-06-08,Monday,19:30,21:00,90,Studio 1,Aerial Yoga,Sisse
 2026-06-09,Tuesday,08:00,09:00,60,Studio 1,Dans FREE,Louise
-2026-06-09,Tuesday,09:00,10:15,75,Studio 2,Yoga FLOW,Louise
+2026-06-09,Tuesday,09:00,10:15,75,Studio 2,Yoga FLOW,Sisse
 2026-06-09,Tuesday,12:05,12:40,35,Studio 1,Noon Stärk (35 min),Peter
 2026-06-09,Tuesday,16:30,17:45,75,Studio 1,Shake The Dust,Janni
 2026-06-09,Tuesday,17:00,18:15,75,At Rört,Parkour,Cecilie
@@ -25,6 +25,7 @@ Date,Day,Start,End,Duration_min,Room,Class,Instructor
 2026-06-10,Wednesday,19:00,20:00,60,Sauna,Saunagus: VIBRANT,Kalle
 2026-06-11,Thursday,07:00,08:00,60,The Black Diamond (outdoors),Trappeträning (Outdoors),Björn
 2026-06-11,Thursday,08:30,09:45,75,Studio 2,Yoga FLOW,Janni
+2026-06-11,Thursday,09:00,10:00,60,Studio 1,Dancing Yolates - Morning Flow,Mikkala
 2026-06-11,Thursday,12:05,12:40,35,Studio 1,Noon Stärk (35 min),Eva
 2026-06-11,Thursday,17:00,18:15,75,Studio 1,Yoga GROW,Rasmus
 2026-06-11,Thursday,17:00,18:15,75,Studio 2,Acroyoga,Eva
