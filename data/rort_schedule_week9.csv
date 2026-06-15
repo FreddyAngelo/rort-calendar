@@ -1,34 +1,37 @@
 Date,Day,Start,End,Duration_min,Room,Class,Instructor
-2026-08-03,Monday,07:30,08:30,60,Studio 1,STÄRK,Cecilie
-2026-08-03,Monday,08:45,10:00,75,Studio 1,Yoga FLOW,Emily
-2026-08-03,Monday,12:05,12:50,45,Studio 1,Noon Yoga FLOW (45 min),Emily
-2026-08-03,Monday,16:15,17:15,60,Studio 1,Beväg - Strength & Movement Class,Sebastian
-2026-08-03,Monday,17:00,18:15,75,Studio 2,Yoga FLOW,Louise
-2026-08-03,Monday,18:30,20:00,90,Studio 1,Yoga GROW,Soham
-2026-08-04,Tuesday,08:00,09:00,60,Studio 1,Dans FREE,Louise
-2026-08-04,Tuesday,09:00,10:15,75,Studio 2,Yoga FLOW,
-2026-08-04,Tuesday,12:05,12:40,35,Studio 1,Noon Stärk (35 min),Sebastian
-2026-08-04,Tuesday,16:30,17:45,75,Studio 1,Shake The Dust,Louise
-2026-08-04,Tuesday,18:00,19:15,75,Studio 1,Contact Impro,Maja
-2026-08-04,Tuesday,20:00,21:00,60,Sauna,Saunagus: CALM,Søren
-2026-08-05,Wednesday,07:30,08:45,75,Studio 1,Yoga FLOW,Cecilie
-2026-08-05,Wednesday,08:30,09:45,75,Studio 2,Yoga GROW #byGraduates,Kalle
-2026-08-05,Wednesday,09:00,10:00,60,Studio 1,STÄRK,Cecilie
-2026-08-05,Wednesday,12:05,12:50,45,Studio 1,Noon Yoga FLOW (45 min),Cecilie
-2026-08-05,Wednesday,16:45,17:45,60,Studio 2,Handstand,Eva
-2026-08-05,Wednesday,17:00,18:15,75,Studio 1,Dans FREE,Louise
-2026-08-06,Thursday,08:30,09:45,75,Studio 1,Yoga FLOW,Emily
-2026-08-06,Thursday,12:05,12:40,35,Studio 1,Noon Stärk (35 min),Eva
-2026-08-06,Thursday,17:00,18:15,75,Studio 1,Yoga GROW,Nanna
-2026-08-06,Thursday,18:30,20:00,90,Studio 2,Bodywork,Mads
-2026-08-06,Thursday,20:30,21:45,75,Sauna,Saunagus: VIBRANT,Mads
-2026-08-07,Friday,08:15,09:30,75,Studio 1,Yoga GROW,Soham
-2026-08-07,Friday,10:00,11:30,90,Studio 1,Yoga SLOW,Soham
-2026-08-07,Friday,12:05,12:50,45,Studio 1,Noon Yoga FLOW (45 min),Nanna
-2026-08-07,Friday,16:00,17:00,60,Studio 1,STÄRK,Eva
-2026-08-08,Saturday,09:00,10:15,75,Studio 1,Yoga FLOW,Oliver
-2026-08-08,Saturday,10:30,11:45,75,Studio 1,Beväg - Strength & Movement Class,Rasmus
-2026-08-08,Saturday,14:00,15:15,75,Studio 1,Shake The Dust,Sophie
-2026-08-09,Sunday,10:00,11:15,75,Studio 1,Yoga FLOW,Emily
-2026-08-09,Sunday,11:30,12:45,75,Studio 2,Yoga SLOW,Emily
-2026-08-09,Sunday,16:30,17:30,60,Sauna,Saunagus: VIBRANT,Kalle
+2026-08-10,Monday,07:30,08:30,60,Studio 1,STÄRK,Peter
+2026-08-10,Monday,08:45,10:00,75,Studio 1,Yoga FLOW,Peter
+2026-08-10,Monday,12:05,12:50,45,Studio 1,Noon Yoga FLOW (45 min),Finja
+2026-08-10,Monday,16:15,17:15,60,Studio 1,Beväg - Strength & Movement Class,Eva
+2026-08-10,Monday,17:00,18:15,75,Studio 2,Yoga FLOW,Emily
+2026-08-10,Monday,18:30,20:00,90,Studio 1,Yoga GROW,Soham
+2026-08-11,Tuesday,08:00,09:00,60,Studio 1,Dans FREE,Louise
+2026-08-11,Tuesday,09:00,10:15,75,Studio 2,Yoga FLOW,Oliver
+2026-08-11,Tuesday,12:05,12:40,35,Studio 1,Noon Stärk (35 min),Oliver
+2026-08-11,Tuesday,16:30,17:45,75,Studio 1,Shake The Dust,Janni
+2026-08-11,Tuesday,18:00,19:15,75,Studio 1,Contact Impro,Maja
+2026-08-11,Tuesday,18:15,19:30,75,Studio 2,Yoga SLOW,Janni
+2026-08-11,Tuesday,20:00,21:00,60,Sauna,Saunagus: CALM,Nicola
+2026-08-12,Wednesday,07:30,08:45,75,Studio 1,Yoga FLOW,Oliver
+2026-08-12,Wednesday,09:00,10:00,60,Studio 1,STÄRK,Oliver
+2026-08-12,Wednesday,12:05,12:50,45,Studio 1,Noon Yoga FLOW (45 min),Oliver
+2026-08-12,Wednesday,16:45,17:45,60,Studio 2,Handstand,Peter
+2026-08-12,Wednesday,17:00,18:15,75,Studio 1,Yoga FLOW,Nanna
+2026-08-13,Thursday,08:30,09:45,75,Studio 1,Yoga FLOW,Janni
+2026-08-13,Thursday,12:05,12:40,35,Studio 1,Noon Stärk (35 min),Eva
+2026-08-13,Thursday,17:00,18:15,75,Studio 1,Yoga GROW,Cecilie
+2026-08-13,Thursday,18:30,20:00,90,Studio 2,Bodywork,Mads
+2026-08-13,Thursday,20:30,21:45,75,Sauna,Saunagus: VIBRANT,Mads
+2026-08-14,Friday,08:15,09:30,75,Studio 1,Yoga GROW,Soham
+2026-08-14,Friday,10:00,14:30,270,At Rört,Rört Summer Dance Gathering: 3-Day Immersion,Malou/Ida
+2026-08-14,Friday,10:00,11:30,90,Studio 1,Yoga SLOW,Soham
+2026-08-14,Friday,12:05,12:50,45,Studio 1,Noon Yoga FLOW (45 min),Finja
+2026-08-14,Friday,16:00,17:00,60,Studio 1,STÄRK,Oliver
+2026-08-14,Friday,17:15,18:30,75,Studio 1,Yoga FLOW,Oliver
+2026-08-15,Saturday,09:00,10:15,75,Studio 1,Yoga FLOW,Nanna
+2026-08-15,Saturday,10:30,11:45,75,Studio 1,Beväg - Strength & Movement Class,Sebastian
+2026-08-15,Saturday,14:00,15:15,75,Studio 1,Shake The Dust,Emily
+2026-08-16,Sunday,10:00,11:15,75,Studio 1,Yoga FLOW,Janni
+2026-08-16,Sunday,10:15,11:30,75,Outdoors (meet at Rört),Parkour,Cecilie
+2026-08-16,Sunday,11:30,12:45,75,Studio 2,Yoga SLOW,Janni
+2026-08-16,Sunday,16:30,17:30,60,Sauna,Saunagus: VIBRANT,Søren
